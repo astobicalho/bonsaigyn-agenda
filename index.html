@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="BonsaiGyn">
+<link rel="apple-touch-icon" href="logo-2.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#1b241d">
+<header style="display: flex; align-items: center; justify-content: space-between; padding: 10px 20px; background: var(--glass); border-bottom: 1px solid var(--glass-border);">
+    <div style="display: flex; align-items: center; gap: 12px;">
+        <img src="https://i.ibb.co/whS5FNrr/logo-2.png" alt="BonsaiGyn" style="height: 45px; width: auto; filter: drop-shadow(0px 2px 4px rgba(0,0,0,0.5));">
+        <span class="header-title">BONSAIGYN</span>
+    </div>
+  <div id="user-display-top" style="font-size: 11px; font-weight: bold; color: var(--light-green); text-transform: uppercase;"></div>
+</header>
+   
+ <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BonsaiGyn</title>
+    <style>
+
+/* --- IDENTIDADE VISUAL DO APP --- */
+.bonsai-logo img {
+    filter: drop-shadow(0 0 8px rgba(46, 204, 113, 0.3)); /* Brilho suave na sua logo */
+    display: block;
+}
+
+/* Mantém a animação de balanço que você pediu antes */
+.bonsai-logo {
+    display: inline-block;
+    animation: leaf-sway 3s ease-in-out infinite;
+}
+
+/* Uma animaçãozinha pro ícone não ficar estático */
+@keyframes leaf-sway {
+    0%, 100% { transform: rotate(-5deg); }
+    50% { transform: rotate(5deg); }
+}
+
+/* Texto do Topo ao lado da Logo */
+.header-title {
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    background: linear-gradient(to right, #2ecc71, #27ae60);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+
+	@keyframes pulse {
+    0% { transform: scale(1); opacity: 0.8; }
+    50% { transform: scale(1.1); opacity: 1; }
+    100% { transform: scale(1); opacity: 0.8; }
+}
+
+#intro-screen input {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid var(--glass-border);
+    margin-bottom: 12px;
+}	
+:root {
+    --deep-green: #1b241d;    /* Fundo floresta profundo */
+    --light-green: #94c1a1;   /* Verde sálvia suave */
+    --glass: rgba(255, 255, 255, 0.05);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --text-main: #f0f0f0;
+}
+
+/* Deixa o fundo do app um pouco mais claro e suave */
+body {
+    background: linear-gradient(135deg, #1b241d 0%, #2a3d31 100%);
+    font-family: 'Segoe UI', sans-serif;
+    color: var(--text-main);
+}
+
+/* Ajuste nos Cards para ficarem mais "leves" */
+.btn-main {
+    background: var(--light-green) !important;
+    color: #1b241d !important;
+    font-weight: bold;
+    border-radius: 12px;
+    transition: 0.3s;
+}
+.btn-main:hover {
+    filter: brightness(1.2);
+    transform: translateY(-2px);
+}        /* Efeito de Arame (Wire Action) nas páginas */
+        .page { display: none; height: calc(100vh - 100px); overflow-y: auto; padding: 15px; padding-bottom: 180px; box-sizing: border-box; }
+        .page.active { display: block; animation: wireAction 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes wireAction { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+
+        .nav-bar { position: fixed; bottom: 0; left: 0; right: 0; height: 90px; background: #050f05; border-top: 1px solid var(--glass-border); display: flex; justify-content: space-around; align-items: center; z-index: 999; }
+        .nav-btn { color: #888; border: none; background: none; font-size: 12px; font-weight: bold; display: flex; flex-direction: column; align-items: center; cursor: pointer; width: 70px; }
+        .nav-btn span { font-size: 24px; margin-bottom: 4px; }
+        .nav-btn.active { color: var(--light-green); }
+
+        /* Botão + com efeito wire */
+        .add-btn { position: absolute; left: 50%; transform: translateX(-50%); bottom: 35px; width: 70px; height: 70px; background: var(--light-green); border-radius: 50%; color: white; font-size: 40px; border: 5px solid #050f05; z-index: 1000; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(0,0,0,0.5); transition: 0.2s; }
+        .add-btn:active { transform: translateX(-50%) scale(0.9); }
+
+        .bonsai-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .card { background: var(--glass); border: 1px solid var(--glass-border); border-radius: 15px; padding: 15px; text-align: center; }
+        .card img { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 2.5px solid var(--light-green); }
+
+        /* Ajuste Foto Guia: 250px */
+        .category-item { margin-bottom: 12px; border: 1px solid var(--glass-border); border-radius: 12px; background: var(--glass); overflow: hidden; }
+        .category-header { padding: 18px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-weight: bold; color: var(--light-green); }
+        /* Container da Categoria Aberta */
+.category-content { 
+    display: none; 
+    padding: 0 15px; 
+    background: rgba(0,0,0,0.3); 
+}
+
+.category-item.open .category-content { 
+    display: block; /* Agora empilha os posts verticalmente */
+}
+
+/* Moldura da Foto dentro do post */
+.post-img-frame img { 
+    width: 250px !important; 
+    height: 250px !important; 
+    object-fit: cover; 
+    border-radius: 10px; 
+    margin-bottom: 10px;
+    border: 1px solid var(--light-green);
+}
+
+.post-text-frame p {
+    font-size: 14px;
+    line-height: 1.6;
+    color: #ddd;
+}
+        /* Botões Verdes com Efeito Mouse */
+        .btn-main { 
+            background: var(--light-green); color: white; border: none; padding: 18px; border-radius: 12px; 
+            font-weight: 800; width: 100%; margin: 8px 0; cursor: pointer; text-transform: uppercase;
+            transition: 0.3s; box-shadow: 0 4px 0 #1b7a43;
+        }
+        .btn-main:hover { filter: brightness(1.1); transform: translateY(-2px); box-shadow: 0 6px 0 #1b7a43; }
+        .btn-main:active { transform: translateY(2px); box-shadow: 0 0px 0 #1b7a43; }
+
+        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--deep-green); z-index: 10000; display: none; flex-direction: column; padding: 20px; box-sizing: border-box; overflow-y: auto; }
+        input, textarea { width: 100%; padding: 15px; margin: 8px 0; border-radius: 10px; border: 1px solid var(--glass-border); background: rgba(255,255,255,0.05); color: white; font-size: 16px; box-sizing: border-box; }
+        
+        .evo-container { display: flex; overflow-x: auto; gap: 15px; padding: 15px 0; min-height: 180px; }
+        .evo-card { flex: 0 0 150px; background: var(--glass); padding: 8px; border-radius: 12px; text-align: center; border: 1px solid var(--glass-border); position: relative; }
+        .evo-card img { width: 100%; height: 150px; object-fit: cover; background: #000; border-radius: 8px; }
+        .del-photo { position: absolute; top: 5px; right: 5px; background: #e74c3c; color: white; border: none; border-radius: 50%; width: 25px; height: 25px; font-weight: bold; cursor: pointer; z-index: 10; }
+
+        /* PDF PADRÃO CONSULTORIA */
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white !important; color: black !important; overflow: visible; }
+            header, .nav-bar, .add-btn, .page, .del-photo { display: none !important; }
+            #overlay-view { display: block !important; position: absolute; top:0; left:0; width: 100%; background: white !important; padding: 20px; }
+            #pdf-title-print { display: block !important; border-bottom: 2px solid #27ae60; padding-bottom: 10px; margin-bottom: 20px; }
+            #v-main-img-pdf { display: block !important; width: 250px; height: 250px; margin: 20px auto; border: 1px solid #ddd; object-fit: cover; }
+            #digital-signature { display: block !important; margin-top: 50px; border-top: 1px solid #000; padding-top: 10px; text-align: center; }
+            input, textarea { border: none !important; background: transparent !important; color: black !important; padding: 0 !important; }
+            label { color: #27ae60 !important; font-size: 12px; text-transform: uppercase; margin-top: 15px; }
+        }
+    </style>
+</head>
+<body>
+<style>
+@keyframes splashWire {
+    from { opacity: 0; transform: scale(0.8) translateY(30px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes loadBar {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(0); }
+}
+</style>
+
+
+<div id="install-banner" style="display:none; background:var(--light-green); color:#1b241d; padding:15px; position:fixed; top:0; left:0; right:0; z-index:99999; text-align:center; font-weight:bold; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
+    🌳 Adicionar BonsaiGyn à tela inicial? 
+    <button onclick="triggerInstall()" style="background:#1b241d; color:white; border:none; padding:8px 15px; border-radius:8px; margin-left:10px; font-weight:bold; cursor:pointer;">INSTALAR</button>
+    <button onclick="this.parentElement.style.display='none'" style="background:none; border:none; color:#1b241d; margin-left:10px; cursor:pointer;">✖</button>
+</div>
+
+<div id="intro-screen" style="position:fixed; top:0; left:0; width:100%; height:100%; background:var(--deep-green); z-index:20000; display:flex; flex-direction:column; align-items:center; justify-content:center; transition: opacity 0.8s ease;">
+    
+    <div id="splash-logo" style="margin-bottom:30px; text-align:center;">
+        <div style="animation: pulse 2s infinite;">
+    <img src="https://i.ibb.co/whS5FNrr/logo-2.png" alt="Logo Entrada" style="width: 120px; height: auto;">
+</div>
+        <h1 style="color:var(--light-green); letter-spacing:3px; margin-top:10px;">BONSAIGYN</h1>
+    </div>
+
+    <div id="auth-form" style="display:none; width:80%; max-width:300px; animation: wireAction 0.5s ease;">
+        <input type="text" id="user-name" placeholder="Seu Nome">
+        <input type="email" id="user-email" placeholder="Seu E-mail">
+        <input type="password" id="user-pass" placeholder="Crie uma Senha">
+        <button class="btn-main" onclick="saveUser()">COMEÇAR A JORNADA DE CULTIVO</button>
+    </div>
+
+    <div id="welcome-msg" style="display:none; text-align:center; color:white;">
+        <h2 id="hi-user"></h2>
+        <p style="opacity:0.6;">Carregando seu jardim...</p>
+    </div>
+</div>
+
+
+
+<div id="p-garden" class="page active"><div class="bonsai-grid" id="bonsai-list"></div></div>
+<div id="p-seasonal" class="page"><h3>📅 Agenda Sazonal</h3><div id="posts-seasonal"></div></div>
+<div id="p-guide" class="page"><h3>📖 Guia de Estilos/Dicas</h3><div id="posts-guide"></div></div>
+
+<div id="p-config" class="page">
+<div class="category-item" style="margin-top: 30px; border-color: #438a6a;">
+    <div class="category-header" style="color: #FFFFFF;" onclick="this.parentElement.classList.toggle('open')">
+       📖 AJUDA RÁPIDA <span>▼</span>
+    </div>
+    <div class="category-content" style="font-size: 13px; line-height: 1.6; padding-bottom: 15px;">
+        <p>1. <b>Jardim 📖:</b>, Você gerencia sua plantas. Toque no card para abrir o prontuário. Use o campo de notas para o diagnóstico e gere o PDF para enviar para impressão..</p>
+        <p>2. <b>Agenda Sazonal:</b> É editável. Como consultor, você pode carregar fotos de adubos ou pragas da sua galeria para ilustrar o que o seu trabalho que deve fazer em cada mês..</p>
+        <p>3. <b>Guia de Estilos:</b>  Serve como material didático. Adicione fotos de bonsais de referência da sua biblioteca para mostrar os estilos durante os trabalhos.</p>
+    </div>
+</div>
+<div class="category-item" style="margin-top: 30px; border-color: #e74c3c;">
+    <div class="category-header" style="color: #e74c3c;" onclick="this.parentElement.classList.toggle('open')">
+        🛑 SOBRE DESINSTALAÇÃO <span>▼</span>
+    </div>
+    <div class="category-content" style="font-size: 13px; line-height: 1.6; padding-bottom: 15px;">
+        <p>1. <b>Backup:</b> Antes de desinstalar, use o botão "EXPORTAR BACKUP".</p>
+        <p>2. <b>Como Remover:</b> Segure o ícone na tela inicial do celular e escolha "Desinstalar".</p>
+        <p>3. <b>Dados:</b> Ao remover o App, o celular limpa o armazenamento local (localStorage). Fique atento!</p>
+    </div>
+</div>
+
+    <div style="text-align:center; margin-bottom:20px;">
+        <span class="bonsai-logo">🌳</span>
+        <h3 style="margin:10px 0;">Painel de Controle</h3>
+    </div>
+
+    <div style="background:var(--glass); padding:20px; border-radius:15px; border:1px solid var(--glass-border); margin-bottom:20px;">
+        <p style="color:var(--light-green); font-weight:bold; margin-top:0; border-bottom:1px solid var(--glass-border); padding-bottom:10px;">📦 Manutenção do Jardim</p>
+        
+        <button class="btn-main" style="background:#3498db !important; margin-top:10px;" onclick="exportData()">📤 EXPORTAR BACKUP (JSON)</button>
+        
+        <button class="btn-main" style="background:#f39c12 !important;" onclick="document.getElementById('import-file').click()">📥 IMPORTAR BACKUP</button>
+        <input type="file" id="import-file" style="display:none" onchange="importData(this)">
+        
+        <hr style="border:0; border-top:1px solid var(--glass-border); margin:15px 0;">
+        
+        <button class="btn-main" style="background:#e74c3c !important;" onclick="clearAllData()">⚠️ LIMPAR TODO O JARDIM</button>
+        <p style="font-size:10px; color:#888; text-align:center;">Use o backup antes de limpar tudo.</p>
+    </div>
+
+    <div id="admin-login" style="background:var(--glass); padding:20px; border-radius:15px; border:1px solid var(--glass-border);">
+        <p style="color:var(--light-green); font-weight:bold; margin-top:0;">🔐 Área do Consultor</p>
+        <label style="font-size:12px; opacity:0.8;">Senha para editar Sazonal e Guia:</label>
+        <input type="password" id="admin-pass" placeholder="Senha do Mestre...">
+        <button class="btn-main" onclick="checkAdmin()">LIBERAR EDIÇÃO TÉCNICA</button>
+    </div>
+
+    <div id="admin-logged" style="display:none; text-align:center; background:rgba(46, 204, 113, 0.1); padding:15px; border-radius:15px; border:1px solid var(--light-green);">
+        <p style="color:var(--light-green); margin:0;">✅ MODO EDITOR ATIVO</p>
+        <small style="opacity:0.7;">Você já pode alterar os Guias e Sazonais.</small>
+        <button class="btn-main" style="background:#555 !important; margin-top:10px;" onclick="location.reload()">ENCERRAR SESSÃO</button>
+    </div>
+</div>
+<div id="overlay-view" class="overlay">
+    <div id="pdf-title-print" style="display:none; font-size: 24px; font-weight: bold;">DIÁRIO DO BONSAI</div>
+    <img id="v-main-img-pdf" style="display:none;">
+    
+    <h2 id="v-title-display" class="no-print" style="color: var(--light-green);"></h2>
+    
+    <div class="no-print"><label>NOME DA PLANTA</label><input type="text" id="v-title-edit"></div>
+    
+    <div style="display:flex; gap:10px;">
+        <div style="flex:1"><label>REPLANTE</label><input type="text" id="v-trans"></div>
+        <div style="flex:1"><label>ADUBAÇÃO</label><input type="text" id="v-adub"></div>
+    </div>
+    
+    <label>LAUDO TÉCNICO DA ESPÉCIE</label>
+    <textarea id="v-notes" style="height:150px;"></textarea>
+
+    <h4>Evolução Temporal da Espécie</h4>
+    <div class="evo-container" id="v-gal"></div>
+    
+    <button class="btn-main no-print" style="background:#444;" onclick="document.getElementById('evo-in').click()">+ FOTO EVOLUÇÃO</button>
+    <input type="file" id="evo-in" style="display:none" onchange="addEvo(this)">
+    
+    <button class="btn-main no-print" onclick="updateBonsai()">SALVAR ALTERAÇÕES</button>
+    <button class="btn-main no-print" style="background:white; color:black; border: 1px solid #000;" onclick="window.print()">GERAR PDF</button>
+    
+    <div id="digital-signature" style="display:none;">
+        <p><b>BonsaiGyn no Coração do Brasil</b></p>
+        <p id="sig-date" style="font-size:12px"></p>
+    </div>
+    
+    <button class="btn-main no-print" style="background:none; color:#e74c3c" onclick="deleteBonsai()">EXCLUIR PLANTA</button>
+    <button class="btn-main no-print" style="background:none; color:white;" onclick="closeAll()">VOLTAR AO JARDIM</button>
+</div>
+
+<div id="overlay-form" class="overlay">
+    <h2>Novo Bonsai</h2>
+    <input type="text" id="f-name" placeholder="Nome da Planta">
+    <input type="file" id="f-photo" accept="image/*">
+    <button class="btn-main" onclick="saveNewBonsai()">CADASTRAR</button>
+    <button class="btn-main" style="background:none; color:white;" onclick="closeAll()">CANCELAR</button>
+</div>
+
+<div id="overlay-post" class="overlay">
+    <h2>Postagem</h2>
+    <input type="hidden" id="edit-id">
+    <input type="text" id="post-cat" placeholder="Título">
+    <textarea id="post-txt" style="height:250px;" placeholder="Conteúdo..."></textarea>
+    <input type="file" id="post-file" accept="image/*">
+    <button class="btn-main" onclick="savePost()">SALVAR POST</button>
+    <button class="btn-main" style="background:none; color:white;" onclick="closeAll()">VOLTAR</button>
+</div>
+
+<button class="add-btn" onclick="handleAdd()">+</button>
+
+<nav class="nav-bar">
+    <button class="nav-btn active" onclick="nav('p-garden', this)"><span>🌳</span>Jardim</button>
+    <button class="nav-btn" onclick="nav('p-seasonal', this)"><span>📅</span>Sazonal</button>
+    <div style="width:70px"></div>
+    <button class="nav-btn" onclick="nav('p-guide', this)"><span>📖</span>Guia</button>
+   <button class="nav-btn" onclick="nav('p-config', this)"><span>⚙️</span>Painel</button>
+</nav>
+
+<script>
+const LOGO_APP = "https://i.ibb.co/whS5FNrr/logo-2.png";
+
+// Função simples para atualizar todas as logos do app de uma vez
+function atualizarLogos() {
+    document.querySelectorAll('.logo-dinamica').forEach(img => {
+        img.src = LOGO_APP;
+    });
+}
+
+    let db = JSON.parse(localStorage.getItem('bonsai_db')) || [];
+    let posts = JSON.parse(localStorage.getItem('bonsai_posts')) || { seasonal: [], guide: [] };
+    let isAdmin = false;
+    let curTab = 'p-garden';
+    let curId = null;
+
+
+
+    function nav(id, btn) {
+        curTab = id;
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        render();
+    }
+// ==========================================
+// BLOCO DE FUNÇÕES DO PAINEL (MANUTENÇÃO)
+// ==========================================
+
+// 1. EXPORTAR (BACKUP)
+function exportData() {
+    const backup = {
+        db: db,
+        posts: posts,
+        user: JSON.parse(localStorage.getItem('bonsai_user'))
+    };
+    const blob = new Blob([JSON.stringify(backup)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `backup_jardim_${new Date().getDate()}.json`;
+    a.click();
+}
+
+// 2. IMPORTAR (RESTAURAR)
+function importData(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        try {
+            const data = JSON.parse(e.target.result);
+            if(confirm("Isso vai substituir tudo. Deseja continuar?")) {
+                if(data.db) localStorage.setItem('bonsai_db', JSON.stringify(data.db));
+                if(data.posts) localStorage.setItem('bonsai_posts', JSON.stringify(data.posts));
+                alert("Jardim restaurado!");
+                location.reload();
+            }
+        } catch(err) { alert("Arquivo inválido!"); }
+    };
+    reader.readAsText(file);
+}
+
+// 3. LIMPAR TUDO
+function clearAllData() {
+    // Primeira barreira: O aviso visual
+    const primeiraConfirmacao = confirm("⚠️ ATENÇÃO, PARÇA!\n\nIsso vai apagar TODAS as suas plantas e guias permanentemente.\n\nVocê já fez o seu BACKUP hoje?");
+    
+    if (primeiraConfirmacao) {
+        // Segunda barreira: Digitação (para garantir que não foi clique acidental)
+        const validacao = prompt("Para confirmar a exclusão total, digite exatamente a palavra: APAGAR");
+        
+        if (validacao === "APAGAR") {
+            localStorage.clear();
+            alert("O jardim foi resetado com sucesso. Recomeçando do zero...");
+            location.reload();
+        } else {
+            alert("Ação cancelada. Seus dados estão salvos! 🌳");
+        }
+    }
+}
+
+// 4. LOGIN DO CONSULTOR (RESTRITO)
+function checkAdmin() {
+    const pass = document.getElementById('admin-pass').value;
+    if(pass === 'cafu123@') { // Coloque sua senha aqui
+        isAdmin = true;
+        document.getElementById('admin-login').style.display = 'none';
+        document.getElementById('admin-logged').style.display = 'block';
+        alert('Modo Editor Ativo!');
+        render(); // Para mostrar botões de editar nos guias
+    } else {
+        alert('Senha incorreta!');
+    }
+}
+    function handleAdd() {
+        if(curTab === 'p-garden') {
+            document.getElementById('f-name').value = '';
+            document.getElementById('f-photo').value = '';
+            document.getElementById('overlay-form').style.display = 'flex';
+        } else if(isAdmin) {
+            document.getElementById('edit-id').value = '';
+            document.getElementById('post-cat').value = '';
+            document.getElementById('post-txt').value = '';
+            document.getElementById('overlay-post').style.display = 'flex';
+        } else { alert('Acesso restrito ao Editor.'); }
+    }
+
+function saveNewBonsai() {
+    const nameInput = document.getElementById('f-name');
+    const photoInput = document.getElementById('f-photo');
+    
+    if(!nameInput.value || !photoInput.files[0]) return alert('Preencha nome e foto!');
+
+    const r = new FileReader();
+    r.onload = (e) => {
+        // 1. Salva no banco
+        const novo = { 
+            id: Date.now(), 
+            name: nameInput.value, 
+            img: e.target.result, 
+            notes: '', trans: '', adub: '', evolution: [] 
+        };
+        db.push(novo);
+        localStorage.setItem('bonsai_db', JSON.stringify(db));
+
+        // 2. LIMPEZA TOTAL E IMEDIATA
+        nameInput.value = '';
+        photoInput.value = '';
+        document.getElementById('overlay-form').style.display = 'none';
+
+        // 3. FORÇA A VOLTA PARA O JARDIM
+        curTab = 'p-garden';
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        
+        document.getElementById('p-garden').classList.add('active');
+        const btnJardim = document.querySelector('.nav-btn[onclick*="p-garden"]');
+        if(btnJardim) btnJardim.classList.add('active');
+
+        // 4. REDESENHA A LISTA (Aqui o novo bonsai aparece!)
+        render(); 
+    };
+    r.readAsDataURL(photoInput.files[0]);
+}
+    function updateBonsai() {
+        const i = db.findIndex(x => x.id == curId);
+        db[i].name = document.getElementById('v-title-edit').value;
+        db[i].notes = document.getElementById('v-notes').value;
+        db[i].trans = document.getElementById('v-trans').value;
+        db[i].adub = document.getElementById('v-adub').value;
+        localStorage.setItem('bonsai_db', JSON.stringify(db));
+        alert('Dados Salvos!');
+        render();
+    }
+
+    function showBonsai(id) {
+        curId = id; const b = db.find(x => x.id == id);
+        document.getElementById('v-title-display').innerText = b.name;
+        document.getElementById('v-title-edit').value = b.name;
+        document.getElementById('v-notes').value = b.notes || "";
+        document.getElementById('v-trans').value = b.trans || "";
+        document.getElementById('v-adub').value = b.adub || "";
+        document.getElementById('v-main-img-pdf').src = b.img;
+        document.getElementById('sig-date').innerText = 'Goiânia, ' + new Date().toLocaleDateString('pt-BR');
+        renderEvo(b.evolution);
+        document.getElementById('overlay-view').style.display = 'flex';
+    }
+
+    // 2. DESENHAR A GALERIA NA TELA
+function renderEvo(evoArray) {
+    const gal = document.getElementById('v-gal');
+    if(!gal) return;
+
+    gal.innerHTML = (evoArray || []).map((e, index) => `
+        <div class="evo-card" style="position:relative; flex: 0 0 150px;">
+            <button class="del-photo no-print" onclick="deletePhoto(${index})" 
+                style="position:absolute; top:5px; right:5px; background:rgba(231, 76, 60, 0.8); 
+                color:white; border:none; border-radius:50%; width:25px; height:25px; cursor:pointer; font-weight:bold;">
+                X
+            </button>
+            <img src="${e.src}" style="width:100%; height:150px; object-fit:cover; border-radius:8px; border:1px solid #444;">
+            <br><small style="color:#aaa; font-size:10px;">${e.date}</small>
+        </div>
+    `).join('') || '<p style="opacity:0.5; font-size:12px;">Nenhuma foto registrada.</p>';
+}
+    // 1. ADICIONAR FOTO (Ajustada para forçar a atualização)
+function addEvo(input) {
+    if(!input.files[0]) return;
+    
+    const r = new FileReader();
+    r.onload = (e) => {
+        const i = db.findIndex(x => x.id == curId);
+        if(i === -1) return;
+
+        if(!db[i].evolution) db[i].evolution = [];
+        
+        const novaFoto = { 
+            src: e.target.result, 
+            date: new Date().toLocaleDateString('pt-BR') 
+        };
+        
+        // 1. Salva no banco
+        db[i].evolution.push(novaFoto);
+        localStorage.setItem('bonsai_db', JSON.stringify(db));
+
+        // 2. FORÇA O REFRESH VISUAL COM DELAY
+        setTimeout(() => {
+            renderEvo(db[i].evolution);
+            // Faz o scroll automático para a última foto adicionada
+            const gal = document.getElementById('v-gal');
+            if(gal) gal.scrollLeft = gal.scrollWidth;
+            
+            input.value = ""; // Limpa o seletor
+        }, 50); 
+    };
+    r.readAsDataURL(input.files[0]);
+}
+// 2. DESENHAR GALERIA (Ajustada para garantir o refresh visual)
+function renderEvo(evoArray) {
+    const gal = document.getElementById('v-gal');
+    if(!gal) return;
+
+    // Limpa o conteúdo atual da galeria para não duplicar ou travar
+    gal.innerHTML = ""; 
+
+    if(!evoArray || evoArray.length === 0) {
+        gal.innerHTML = '<p style="opacity:0.5; font-size:12px; padding:20px;">Nenhuma foto na evolução.</p>';
+        return;
+    }
+
+    // Cria o HTML de todas as fotos
+    const htmlGaleria = evoArray.map((e, index) => `
+        <div class="evo-card" style="position:relative; flex: 0 0 150px; margin-right:10px;">
+            <button class="no-print" onclick="deletePhoto(${index})" 
+                style="position:absolute; top:5px; right:5px; background:rgba(231, 76, 60, 0.9); 
+                color:white; border:none; border-radius:50%; width:22px; height:22px; cursor:pointer; z-index:10;">
+                ×
+            </button>
+            <img src="${e.src}" style="width:150px; height:150px; object-fit:cover; border-radius:10px; border:1px solid var(--glass-border);">
+            <div style="font-size:10px; color:#aaa; text-align:center; margin-top:5px;">${e.date}</div>
+        </div>
+    `).join('');
+
+    // Injeta o HTML novo
+    gal.innerHTML = htmlGaleria;
+    
+    // Força o scroll para o final da galeria para mostrar a foto nova
+    gal.scrollLeft = gal.scrollWidth;
+}    // 3. EXCLUIR FOTO DA EVOLUÇÃO
+function deletePhoto(index) {
+    if(!confirm("Excluir esta foto da evolução?")) return;
+    
+    const i = db.findIndex(x => x.id == curId);
+    db[i].evolution.splice(index, 1);
+    
+    localStorage.setItem('bonsai_db', JSON.stringify(db));
+    renderEvo(db[i].evolution); // Atualiza a galeria na hora
+}
+
+    function savePost() {
+        const id = document.getElementById('edit-id').value;
+        const cat = document.getElementById('post-cat').value;
+        const txt = document.getElementById('post-txt').value;
+        const file = document.getElementById('post-file').files[0];
+        const type = (curTab === 'p-guide') ? 'guide' : 'seasonal';
+        
+        const finalize = (img) => {
+            if(id) {
+                const idx = posts[type].findIndex(p => p.id == id);
+                posts[type][idx].category = cat; posts[type][idx].text = txt;
+                if(img) posts[type][idx].img = img;
+            } else {
+                posts[type].unshift({ id: Date.now(), category: cat, text: txt, img: img });
+            }
+            localStorage.setItem('bonsai_posts', JSON.stringify(posts));
+            closeAll(); render();
+        };
+
+        if(file) {
+            const r = new FileReader();
+            r.onload = (e) => finalize(e.target.result);
+            r.readAsDataURL(file);
+        } else { finalize(null); }
+    }
+
+  function render() {
+    // Render do Jardim
+    const gList = document.getElementById('bonsai-list');
+    if(gList) {
+        gList.innerHTML = db.map(b => `
+            <div class="card" onclick="showBonsai(${b.id})">
+                <img src="${b.img}">
+                <br><b>${b.name}</b>
+            </div>`).join('');
+    }
+
+    // Render das abas Sazonal e Guia (Padronizado)
+    ['seasonal', 'guide'].forEach(type => {
+        const container = document.getElementById(`posts-${type}`);
+        if(!container) return;
+
+        // Agrupa por categoria para manter seu layout
+        const grouped = (posts[type] || []).reduce((acc, obj) => {
+            const key = obj.category || 'Dicas';
+            if (!acc[key]) acc[key] = [];
+            acc[key].push(obj);
+            return acc;
+        }, {});
+
+        container.innerHTML = Object.keys(grouped).map(catName => `
+            <div class="category-item">
+                <div class="category-header" onclick="this.parentElement.classList.toggle('open')">
+                    ${catName.toUpperCase()} <span>▼</span>
+                </div>
+                <div class="category-content">
+                    ${grouped[catName].map(p => `
+                        <div class="post-block" style="border-bottom: 1px solid #333; padding: 15px 0;">
+                            ${p.img ? `<div class="post-img-frame"><img src="${p.img}"></div>` : ''}
+                            <p style="white-space: pre-wrap;">${p.text}</p>
+                            
+                            ${isAdmin ? `
+                                <div style="margin-top:10px;">
+                                    <button onclick="editPost('${type}', ${p.id})" style="color:var(--light-green); background:none; border:none; cursor:pointer;">✏️</button>
+                                   <button onclick="delPost('${type}', ${p.id})" style="background:none; border:none; cursor:pointer; font-size: 20px;" title="Excluir">
+    🗑️
+</button>
+                                </div>` : ''}
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `).join('');
+    });
+}
+// FUNÇÃO EXCLUIR (SAZONAL E GUIA)
+function delPost(type, id) {
+    if(confirm("Deseja realmente excluir este conteúdo técnico?")) {
+        // Filtra o array removendo o post
+        posts[type] = posts[type].filter(p => p.id !== id);
+        
+        // Salva no LocalStorage com o nome padrão
+        localStorage.setItem('bonsai_posts', JSON.stringify(posts));
+        
+        // Atualiza a tela
+        render();
+    }
+}
+
+// FUNÇÃO EDITAR
+function editPost(type, id) {
+    const p = posts[type].find(post => post.id == id);
+    if(p) {
+        document.getElementById('edit-id').value = p.id;
+        document.getElementById('post-cat').value = p.category;
+        document.getElementById('post-txt').value = p.text;
+        document.getElementById('overlay-post').style.display = 'flex';
+    }
+}
+    function deleteBonsai() {
+        if(confirm('Excluir esta planta?')) {
+            db = db.filter(x => x.id != curId);
+            localStorage.setItem('bonsai_db', JSON.stringify(db));
+            closeAll(); render();
+        }
+    }
+
+    function closeAll() { document.querySelectorAll('.overlay').forEach(o => o.style.display = 'none'); }
+    function exportData() {
+        const blob = new Blob([JSON.stringify({db, posts})], {type:'application/json'});
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+        a.download = 'backup_bonsaigyn.json'; a.click();
+    }
+    window.onload = render;
+
+// Lógica de Autenticação e Abertura
+function checkAuth() {
+    const user = JSON.parse(localStorage.getItem('bonsai_user'));
+    const intro = document.getElementById('intro-screen');
+    const authForm = document.getElementById('auth-form');
+    const welcome = document.getElementById('welcome-msg');
+
+    if (!user) {
+        // Primeiro acesso: Mostra o formulário
+        authForm.style.display = 'block';
+    } else {
+        // Já cadastrado: Mostra boas-vindas e entra
+        welcome.style.display = 'block';
+        document.getElementById('hi-user').innerText = `Olá, ${user.name}!`;
+        
+        setTimeout(() => {
+            intro.style.opacity = '0';
+            setTimeout(() => { intro.style.display = 'none'; }, 800);
+        }, 5000); // Fica 5 segundos na tela de boas-vindas
+    }
+}
+
+function saveUser() {
+    // 1. Pega os valores
+    const nome = document.getElementById('user-name').value.trim();
+    const email = document.getElementById('user-email').value.trim();
+    const pass = document.getElementById('user-pass').value.trim();
+
+    // 2. Validação de campos vazios
+    if (!nome || !email || !pass) {
+        alert("Preencha todos os campos, Parça!");
+        return;
+    }
+
+    // 3. Validação do @ (A trava que você pediu)
+    if (!email.includes('@') || !email.includes('.')) {
+        alert("Insira um e-mail válido com '@' e '.com'");
+        return;
+    }
+
+    // 4. Se chegou aqui, salva no LocalStorage
+    const user = { name: nome, email: email, pass: pass };
+    localStorage.setItem('bonsai_user', JSON.stringify(user));
+
+    // 5. Tenta enviar o e-mail (EmailJS)
+    try {
+        emailjs.send("service_pg031ib", "template_u892jx", {
+            name: nome,
+            email: email,
+            data: new Date().toLocaleString('pt-BR')
+        }).then(() => {
+            alert(`Bem-vindo, ${nome}!`);
+            location.reload();
+        }).catch((err) => {
+            // Se o EmailJS falhar, ele entra no app do mesmo jeito
+            console.log("EmailJS offline, mas salvando...", err);
+            location.reload();
+        });
+    } catch (e) {
+        // Fallback total: se nem o EmailJS carregar, ele entra
+        location.reload();
+    }
+}
+
+// Inicializa a trava de abertura
+window.addEventListener('DOMContentLoaded', checkAuth);
+// --- BLINDAGEM CONTRA CURIOSOS ---
+
+// Bloquear clique direito
+document.addEventListener('contextmenu', event => event.preventDefault());
+
+// Bloquear atalhos de teclado (F12, Ctrl+Shift+I, Ctrl+U)
+document.onkeydown = function(e) {
+    // Bloquear F12
+    if (e.keyCode == 123) {
+        return false;
+    }
+    // Bloquear Ctrl+Shift+I (Inspecionar)
+    if (e.ctrlKey && e.shiftKey && e.keyCode == 'I'.charCodeAt(0)) {
+        return false;
+    }
+    // Bloquear Ctrl+Shift+J (Console)
+    if (e.ctrlKey && e.shiftKey && e.keyCode == 'J'.charCodeAt(0)) {
+        return false;
+    }
+    // Bloquear Ctrl+U (Ver Código Fonte)
+    if (e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)) {
+        return false;
+    }
+};
+
+// Mensagem no console para desencorajar curiosos
+console.log("%cInterrompido! %cÁrea restrita aos especialistas em Bonsai.", 
+            "color: red; font-size: 20px; font-weight: bold;", 
+            "color: #94c1a1; font-size: 14px;");
+let deferredPrompt;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+    // Impede que o navegador mostre o banner padrão muito rápido
+    e.preventDefault();
+    deferredPrompt = e;
+    
+    // Opcional: Você pode criar um botão seu no Painel "Instalar no Celular"
+    // e mostrar ele apenas quando o deferredPrompt estiver ativo.
+    console.log("O BonsaiGyn está pronto para ser instalado!");
+});
+
+let installPrompt;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+    // Impede o banner padrão do Chrome
+    e.preventDefault();
+    // Guarda o evento para usar depois
+    installPrompt = e;
+    // Mostra o nosso banner personalizado
+    document.getElementById('install-banner').style.display = 'block';
+});
+
+function triggerInstall() {
+    if (installPrompt) {
+        // Esconde o nosso banner
+        document.getElementById('install-banner').style.display = 'none';
+        // Mostra o convite real do sistema
+        installPrompt.prompt();
+        
+        installPrompt.userChoice.then((choiceResult) => {
+            if (choiceResult.outcome === 'accepted') {
+                console.log('BonsaiGyn instalado com sucesso!');
+            }
+            installPrompt = null;
+        });
+    }
+}
+
+// Esconder banner se o app já estiver instalado
+window.addEventListener('appinstalled', () => {
+    document.getElementById('install-banner').style.display = 'none';
+});
+
+// CONTROLE DA TELA DE ENTRADA
+window.addEventListener('load', () => {
+    setTimeout(() => {
+        const splash = document.getElementById('splash-screen');
+        splash.style.opacity = '0'; // Efeito de fade-out
+        setTimeout(() => {
+            splash.style.display = 'none'; // Remove do DOM após o fade
+        }, 800);
+    }, 3000); // Fica visível por 3 segundos
+});
+
+// CONFIGURAÇÃO DO EMAILJS
+emailjs.init("SUA_PUBLIC_KEY_AQUI"); // <--- Coloque sua chave aqui
+
+// VERIFICA SE JÁ ESTÁ LOGADO
+window.addEventListener('load', () => {
+    const user = localStorage.getItem('bonsai_user');
+    if(user) {
+        document.getElementById('intro-screen').style.display = 'none';
+        const data = JSON.parse(user);
+        document.getElementById('user-display-top').innerText = data.nome;
+    }
+});
+
+</script>
+</body>
+</html>
