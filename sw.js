@@ -1,7 +1,8 @@
+const CACHE_NAME = 'bonsai-v1';
 self.addEventListener('install', (e) => {
-  self.skipWaiting();
+    e.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(['./index.html'])));
 });
 
 self.addEventListener('fetch', (e) => {
-  // Necessário para o check-list do PWA
+    e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
 });
