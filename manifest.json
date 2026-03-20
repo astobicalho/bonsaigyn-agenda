@@ -1,8 +1,7 @@
 {
   "name": "BonsaiGyn Pro",
   "short_name": "BonsaiGyn",
-  "description": "Sistema de Gestão de Bonsais",
-  "start_url": "index.html",
+  "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#1a1412",
   "theme_color": "#1a1412",
@@ -10,7 +9,8 @@
     {
       "src": "https://cdn-icons-png.flaticon.com/512/629/629547.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }
