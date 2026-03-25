@@ -653,63 +653,27 @@ function deletePhoto(index) {
         finalizarGravacao(null); // Não escolheu foto, salva só texto
     }
 }
- function render() {
-    // 1. Render do Jardim (Bonsai Individual)
-    const gList = document.getElementById('bonsai-list');
-    if(gList) {
-        gList.innerHTML = db.map(b => `
-            <div class="card" onclick="showBonsai(${b.id})">
-                <img src="${b.img || 'https://i.ibb.co/whS5FNrr/logo-2.png'}" style="width:100%; border-radius:8px;">
-                <br><b>${b.name}</b>
-            </div>`).join('');
-    }
+ // Procure algo parecido com isso dentro do seu <script>:
+function render() {
+    const container = document.getElementById('posts-container'); // ou outro ID de lista
+    let html = '';
 
-    // 2. Render das abas Sazonal e Guia (Posts)
-    ['seasonal', 'guide'].forEach(type => {
-        const container = document.getElementById(`posts-${type}`);
-        if(!container) return;
+    posts[type].forEach((p) => {
+        // --- AQUI ESTÁ A MUDANÇA ---
+        // 1. Criamos a regra: se p.img existir, usa ela. Se não, usa a logo.
+        const fotoFinal = p.img ? p.img : "https://i.ibb.co/whS5FNrr/logo-2.png";
 
-        // Agrupa por categoria
-        const grouped = (posts[type] || []).reduce((acc, obj) => {
-            const key = obj.category || 'Dicas';
-            if (!acc[key]) acc[key] = [];
-            acc[key].push(obj);
-            return acc;
-        }, {});
-
-        container.innerHTML = Object.keys(grouped).map(catName => `
-            <div class="category-item">
-                <div class="category-header" onclick="this.parentElement.classList.toggle('open')">
-                    ${catName.toUpperCase()} <span>▼</span>
-                </div>
-                <div class="category-content">
-                    ${grouped[catName].map(p => {
-                        // LÓGICA DA FOTO: Se tem foto real, mostra. Se não, mostra a logo discreta.
-                        const exibirFoto = (p.img && p.img.includes('data:image')) 
-                            ? `<div class="post-img-frame" style="margin-bottom:10px;">
-                                 <img src="${p.img}" style="width:100%; border-radius:10px; border: 1px solid #444;">
-                               </div>` 
-                            : `<div class="post-img-frame" style="margin-bottom:10px; opacity:0.3;">
-                                 <img src="https://i.ibb.co/whS5FNrr/logo-2.png" style="width:50px; display:block; margin:0 auto;">
-                               </div>`;
-
-                        return `
-                            <div class="post-block" style="border-bottom: 1px solid #333; padding: 15px 0;">
-                                ${exibirFoto}
-                                <p style="white-space: pre-wrap; color: #ccc; font-size: 14px;">${p.text}</p>
-                                
-                                ${isAdmin ? `
-                                    <div style="margin-top:10px; display: flex; gap: 15px;">
-                                        <button onclick="editPost('${type}', ${p.id})" style="background:none; border:none; cursor:pointer; font-size:18px;">✏️</button>
-                                        <button onclick="delPost('${type}', ${p.id})" style="background:none; border:none; cursor:pointer; font-size:18px;" title="Excluir">🗑️</button>
-                                    </div>` : ''}
-                            </div>
-                        `;
-                    }).join('')}
-                </div>
+        // 2. No innerHTML, trocamos o link fixo por ${fotoFinal}
+        html += `
+            <div class="card">
+                <img src="${fotoFinal}" style="width:100%; border-radius:10px;">
+                <h3>${p.category}</h3>
+                <p>${p.text}</p>
             </div>
-        `).join('');
+        `;
     });
+
+    container.innerHTML = html; // Esse é o innerHTML que manda pra tela!
 }
 // FUNÇÃO EXCLUIR (SAZONAL E GUIA)
 function delPost(type, id) {
