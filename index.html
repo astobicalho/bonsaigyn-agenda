@@ -598,69 +598,70 @@ function deletePhoto(index) {
 }
 
 function savePost() {
-    console.log("Iniciando Operação Trator...");
+    console.log("Iniciando salvamento...");
 
-    // 1. CAPTURA DOS CAMPOS (Com '?' para não travar se o ID sumir)
+    // 1. PEGA OS DADOS BÁSICOS
     const cat = document.getElementById('post-cat')?.value || "Geral";
     const txt = document.getElementById('post-txt')?.value;
-    const fileEl = document.getElementById('post-file');
+    const fileInput = document.getElementById('post-file');
     const editId = document.getElementById('edit-id')?.value;
     const type = (curTab === 'p-guide') ? 'guide' : 'seasonal';
 
-    if (!txt) return alert("Escreva algo no texto, Parça!");
+    // Se o texto estiver vazio, para aqui
+    if (!txt) return alert("Escreva o texto antes de salvar, Parça!");
 
-    // 2. FUNÇÃO QUE REALMENTE ESCREVE NO DISCO
-    const forcarGravacao = (imgData) => {
+    // 2. FUNÇÃO QUE ESCREVE NO DISCO (O CORAÇÃO DO PROCESSO)
+    const gravar = (imgBase64) => {
         try {
-            // Verifica se a variável global existe, se não, cria na hora
-            if (typeof posts === 'undefined') {
-                window.posts = { seasonal: [], guide: [] };
-            }
+            // Garante que a variável posts existe e tem os arrays
+            if (typeof posts === 'undefined') window.posts = { seasonal: [], guide: [] };
+            if (!posts.seasonal) posts.seasonal = [];
+            if (!posts.guide) posts.guide = [];
 
-            const novoPost = {
-                id: Date.now(),
+            const dadosPost = {
+                id: editId ? Number(editId) : Date.now(),
                 category: cat,
                 text: txt,
-                img: imgData || null
+                img: imgBase64 || null
             };
 
             if (editId) {
                 const idx = posts[type].findIndex(p => p.id == editId);
-                if (idx !== -1) posts[type][idx] = novoPost;
+                if (idx !== -1) posts[type][idx] = dadosPost;
             } else {
-                posts[type].unshift(novoPost);
+                posts[type].unshift(dadosPost);
             }
 
-            // --- O MOMENTO DA VERDADE ---
-            const stringParaSalvar = JSON.stringify(posts);
-            localStorage.setItem('bonsai_posts', stringParaSalvar);
+            // SALVAMENTO REAL NO NAVEGADOR
+            localStorage.setItem('bonsai_posts', JSON.stringify(posts));
             
-            // Se o código chegar aqui, SALVOU DE VERDADE
-            alert("✅ PEDRA QUEBRADA! Salvo com sucesso.");
+            alert("✅ AGORA FOI! Salvo de verdade.");
             
-            // Limpa e fecha tudo
+            // LIMPEZA DE CAMPOS
             if(document.getElementById('post-txt')) document.getElementById('post-txt').value = "";
             if(document.getElementById('edit-id')) document.getElementById('edit-id').value = "";
-            
+            if(fileInput) fileInput.value = "";
+
             closeAll();
             render();
-        } catch (err) {
-            console.error(err);
-            alert("❌ ERRO FATAL: O celular recusou o salvamento. Tente sem foto!");
+        } catch (e) {
+            alert("ERRO AO SALVAR: " + e.message);
         }
     };
 
-    // 3. TRATAMENTO DA FOTO (Se tiver, tenta carregar. Se falhar ou não tiver, salva o texto!)
-    if (fileEl && fileEl.files[0]) {
+    // 3. A LÓGICA QUE ESTAVA TRAVANDO (CORRIGIDA)
+    // Se tem arquivo selecionado, lê a foto. Se NÃO TEM, salva o texto direto!
+    if (fileInput && fileInput.files && fileInput.files[0]) {
         const reader = new FileReader();
-        reader.onload = (e) => forcarGravacao(e.target.result);
-        reader.onerror = () => forcarGravacao(null); // Se der erro na foto, salva só o texto
-        reader.readAsDataURL(fileEl.files[0]);
+        reader.onload = (e) => gravar(e.target.result);
+        reader.onerror = () => gravar(null); // Se a foto der erro, salva o texto
+        reader.readAsDataURL(fileInput.files[0]);
     } else {
-        forcarGravacao(null);
+        // AQUI ESTAVA O SEGREDO: Salva direto sem esperar por foto
+        console.log("Sem foto detectada, salvando apenas texto...");
+        gravar(null);
     }
 }	
-	
 	function render() {
     // Render do Jardim
     const gList = document.getElementById('bonsai-list');
