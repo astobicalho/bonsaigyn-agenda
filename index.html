@@ -603,38 +603,60 @@ function deletePhoto(index) {
     const txt = document.getElementById('post-txt').value;
     const file = document.getElementById('post-file').files[0];
     const type = (curTab === 'p-guide') ? 'guide' : 'seasonal';
-    
-    if(!cat || !txt) return alert("Preencha categoria e texto!");
 
-    const finalizarGravacao = (imgFinal) => {
+    if(!cat || !txt) return alert("Preencha os campos, Parça!");
+
+    const executarSalvamento = (imgLeve) => {
         try {
             if(id) {
                 const idx = posts[type].findIndex(p => p.id == id);
                 if(idx !== -1) {
                     posts[type][idx].category = cat;
                     posts[type][idx].text = txt;
-                    if(imgFinal) posts[type][idx].img = imgFinal;
+                    if(imgLeve) posts[type][idx].img = imgLeve;
                 }
             } else {
-                posts[type].unshift({ id: Date.now(), category: cat, text: txt, img: imgFinal });
+                posts[type].unshift({ id: Date.now(), category: cat, text: txt, img: imgLeve });
             }
 
             localStorage.setItem('bonsai_posts', JSON.stringify(posts));
+            alert("SALVOU NO CELULAR! 🌳");
             
-            // Limpa tudo para o próximo não bugar
+            // Limpa e fecha (com trava para não dar erro de 'null')
             document.getElementById('edit-id').value = '';
-            document.getElementById('post-cat').value = '';
             document.getElementById('post-txt').value = '';
             document.getElementById('post-file').value = '';
-            
-            alert("Agora foi, Parça! Salvo com sucesso. 🌳");
             closeAll();
             render();
         } catch (e) {
-            alert("ERRO: O navegador ainda está cheio! Tente apagar posts antigos ou postar sem foto.");
+            alert("MEMÓRIA CHEIA! O celular não aguentou o tamanho dessa foto.");
         }
     };
 
+    if(file) {
+        // --- COMPRESSOR PARA CELULAR ---
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = (e) => {
+            const img = new Image();
+            img.src = e.target.result;
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                const MAX_WIDTH = 600; // Foto pequena para o post
+                const scale = MAX_WIDTH / img.width;
+                canvas.width = MAX_WIDTH;
+                canvas.height = img.height * scale;
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                
+                // Transforma em JPEG 50% (Fica minúsculo e limpo)
+                executarSalvamento(canvas.toDataURL('image/jpeg', 0.5));
+            };
+        };
+    } else {
+        executarSalvamento(null);
+    }
+}
     if(file) {
         // --- MINI COMPRESSOR INTEGRADO ---
         const reader = new FileReader();
