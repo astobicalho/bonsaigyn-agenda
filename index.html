@@ -598,86 +598,77 @@ function deletePhoto(index) {
 }
 
 function savePost() {
-    console.log("Iniciando salvamento no Jardim...");
-
-    // 1. CAPTURA SEGURA (Se der erro aqui, o ID no HTML está errado)
-    const idEl = document.getElementById('edit-id');
-    const catEl = document.getElementById('post-cat');
-    const txtEl = document.getElementById('post-txt');
-    const fileEl = document.getElementById('post-file');
-
-    if (!catEl || !txtEl) {
-        alert("ERRO TÉCNICO: O Script não achou os campos 'post-cat' ou 'post-txt' no HTML!");
-        return;
+    const id = document.getElementById('edit-id').value;
+    const cat = document.getElementById('post-cat').value;
+    const txt = document.getElementById('post-txt').value;
+    const fileInput = document.getElementById('post-file');
+    const type = (curTab === 'p-guide') ? 'guide' : 'seasonal';
+    
+    // 1. TRAVA SÓ O TEXTO (A categoria e o texto são obrigatórios)
+    if(!cat || !txt) {
+        return alert("Preencha a categoria e o texto, Parça!");
     }
 
-    const id = idEl ? idEl.value : '';
-    const cat = catEl.value;
-    const txt = txtEl.value;
-    const type = (curTab === 'p-guide') ? 'guide' : 'seasonal';
-
-    if (!cat || !txt) return alert("Preencha categoria e texto, Parça!");
-
-    const finalizar = (imgData) => {
+    // 2. FUNÇÃO QUE FAZ A GRAVAÇÃO REAL NO BANCO
+    const gravarNoBanco = (imgFinal) => {
         try {
-            // Garantir que a estrutura existe
-            if (!posts[type]) posts[type] = [];
-
-            if (id) {
+            if(id) {
+                // Modo Edição
                 const idx = posts[type].findIndex(p => p.id == id);
-                if (idx !== -1) {
+                if(idx !== -1) {
                     posts[type][idx].category = cat;
                     posts[type][idx].text = txt;
-                    if (imgData) posts[type][idx].img = imgData;
+                    if(imgFinal) posts[type][idx].img = imgFinal;
                 }
             } else {
-                posts[type].unshift({
-                    id: Date.now(),
-                    category: cat,
-                    text: txt,
-                    img: imgData
+                // Novo Post
+                posts[type].unshift({ 
+                    id: Date.now(), 
+                    category: cat, 
+                    text: txt, 
+                    img: imgFinal || null // Se não tiver foto, salva como null
                 });
             }
 
-            // SALVAMENTO COM CHAVE ÚNICA DO JARDIM
             localStorage.setItem('bonsai_posts', JSON.stringify(posts));
+            
+            // Limpa tudo para o próximo
+            document.getElementById('edit-id').value = '';
+            document.getElementById('post-cat').value = '';
+            document.getElementById('post-txt').value = '';
+            fileInput.value = '';
 
-            alert("AGORA FOI! Salvo no Jardim! 🌳");
-
-            // LIMPEZA TOTAL (O segredo do celular é zerar tudo)
-            if(idEl) idEl.value = '';
-            catEl.value = '';
-            txtEl.value = '';
-            if(fileEl) fileEl.value = '';
-
+            alert("CONTEÚDO SALVO! 🌳");
             closeAll();
             render();
         } catch (e) {
-            alert("ERRO DE MEMÓRIA: O celular travou o salvamento. Tente uma foto menor ou limpe o histórico do navegador.");
+            alert("ERRO DE MEMÓRIA: O celular não aguentou. Tente apagar posts antigos.");
         }
     };
 
-    // Se tiver foto, comprime antes (O Shop faz isso, por isso funciona lá)
-    const file = fileEl ? fileEl.files[0] : null;
-    if (file) {
+    // 3. LÓGICA DA FOTO (SÓ PROCESSA SE O USUÁRIO ESCOLHER UMA)
+    if(fileInput && fileInput.files[0]) {
         const reader = new FileReader();
+        reader.readAsDataURL(fileInput.files[0]);
         reader.onload = (e) => {
             const img = new Image();
             img.src = e.target.result;
             img.onload = () => {
                 const canvas = document.createElement('canvas');
-                const MAX_WIDTH = 600;
+                const ctx = canvas.getContext('2d');
+                const MAX_WIDTH = 600; 
                 const scale = MAX_WIDTH / img.width;
                 canvas.width = MAX_WIDTH;
                 canvas.height = img.height * scale;
-                const ctx = canvas.getContext('2d');
                 ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                finalizar(canvas.toDataURL('image/jpeg', 0.5)); // JPEG leve
+                
+                // Salva com foto comprimida
+                gravarNoBanco(canvas.toDataURL('image/jpeg', 0.5));
             };
         };
-        reader.readAsDataURL(file);
     } else {
-        finalizar(null);
+        // SE NÃO TEM FOTO, CHAMA O SALVAMENTO SÓ COM TEXTO
+        gravarNoBanco(null);
     }
 }
 	function render() {
