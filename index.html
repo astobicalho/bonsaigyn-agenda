@@ -598,54 +598,78 @@ function deletePhoto(index) {
 }
 
 function savePost() {
-    const id = document.getElementById('edit-id').value;
-    const cat = document.getElementById('post-cat').value;
-    const txt = document.getElementById('post-txt').value;
-    const fileInput = document.getElementById('post-file');
-    const type = (curTab === 'p-guide') ? 'guide' : 'seasonal';
-    
-    // 1. TRAVA SÓ O TEXTO (A categoria e o texto são obrigatórios)
-    if(!cat || !txt) {
-        return alert("Preencha a categoria e o texto, Parça!");
+    console.log("Iniciando gravação forçada...");
+
+    // 1. PEGA OS DADOS (Com nomes alternativos para não dar erro)
+    const catEl = document.getElementById('post-cat') || document.getElementById('in-cat');
+    const txtEl = document.getElementById('post-txt') || document.getElementById('in-txt');
+    const fileEl = document.getElementById('post-file') || document.getElementById('in-photo');
+    const editIdEl = document.getElementById('edit-id');
+
+    if (!catEl || !txtEl) {
+        alert("Erro: Campos de texto não encontrados no HTML!");
+        return;
     }
 
-    // 2. FUNÇÃO QUE FAZ A GRAVAÇÃO REAL NO BANCO
-    const gravarNoBanco = (imgFinal) => {
+    const category = catEl.value;
+    const text = txtEl.value;
+    const id = editIdEl ? editIdEl.value : "";
+    const type = (curTab === 'p-guide') ? 'guide' : 'seasonal';
+
+    // 2. FUNÇÃO INTERNA DE SALVAMENTO REAL
+    const finalizarEGravar = (imgBase64) => {
         try {
-            if(id) {
-                // Modo Edição
+            if (id) {
                 const idx = posts[type].findIndex(p => p.id == id);
-                if(idx !== -1) {
-                    posts[type][idx].category = cat;
-                    posts[type][idx].text = txt;
-                    if(imgFinal) posts[type][idx].img = imgFinal;
+                if (idx !== -1) {
+                    posts[type][idx].category = category;
+                    posts[type][idx].text = text;
+                    if (imgBase64) posts[type][idx].img = imgBase64;
                 }
             } else {
-                // Novo Post
-                posts[type].unshift({ 
-                    id: Date.now(), 
-                    category: cat, 
-                    text: txt, 
-                    img: imgFinal || null // Se não tiver foto, salva como null
+                posts[type].unshift({
+                    id: Date.now(),
+                    category: category,
+                    text: text,
+                    img: imgBase64 || null
                 });
             }
 
+            // --- PASSO CRÍTICO: GRAVAR NO DISCO ---
             localStorage.setItem('bonsai_posts', JSON.stringify(posts));
             
-            // Limpa tudo para o próximo
-            document.getElementById('edit-id').value = '';
-            document.getElementById('post-cat').value = '';
-            document.getElementById('post-txt').value = '';
-            fileInput.value = '';
+            // Se chegou aqui, o dado está salvo no celular!
+            alert("SALVOU NO DISCO! 🌳");
 
-            alert("CONTEÚDO SALVO! 🌳");
-            closeAll();
+            // Limpa os campos
+            catEl.value = "";
+            txtEl.value = "";
+            if(editIdEl) editIdEl.value = "";
+            
+            // Fecha a tela (com trava de erro)
+            const overlay = document.getElementById('overlay-post') || document.querySelector('.overlay');
+            if(overlay) overlay.style.display = 'none';
+            
             render();
         } catch (e) {
-            alert("ERRO DE MEMÓRIA: O celular não aguentou. Tente apagar posts antigos.");
+            console.error(e);
+            alert("MEMÓRIA CHEIA: O post é muito grande para o celular!");
         }
     };
 
+    // 3. LOGICA DA FOTO (FLEXÍVEL)
+    if (fileEl && fileEl.files[0]) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            // Se tiver foto, salva com foto (o compressor ajudaria aqui)
+            finalizarEGravar(e.target.result);
+        };
+        reader.readAsDataURL(fileEl.files[0]);
+    } else {
+        // SE NÃO TIVER FOTO, SALVA SÓ O TEXTO (Isso destrava o seu erro!)
+        finalizarEGravar(null);
+    }
+}
     // 3. LÓGICA DA FOTO (SÓ PROCESSA SE O USUÁRIO ESCOLHER UMA)
     if(fileInput && fileInput.files[0]) {
         const reader = new FileReader();
