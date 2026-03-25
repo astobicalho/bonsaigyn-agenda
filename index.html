@@ -1019,27 +1019,6 @@ function saveNewBonsai() {
         finalizar(null); // Salva sem foto sem travar!
     }
 }
-
-            // Adiciona ao banco de dados e salva
-            db.push(dadosBonsai);
-            localStorage.setItem('bonsai_db', JSON.stringify(db));
-
-            alert('Bonsai "Sibipiruna" cadastrado com sucesso! 🌳');
-
-            // LIMPEZA TOTAL (Zera os campos para o próximo cadastro)
-            inputNome.value = '';
-            if(inputRep) inputRep.value = '';
-            if(inputAdu) inputAdu.value = '';
-            if(inputObs) inputObs.value = '';
-            if(inputFoto) inputFoto.value = '';
-
-            closeAll(); // Fecha o overlay
-            render();   // Atualiza a lista na tela
-        } catch (e) {
-            alert('ERRO DE MEMÓRIA: O navegador não aguentou o tamanho dessa foto.');
-        }
-    });
-}
 // --- ATÉ AQUI ---
 </script>
 </body>
