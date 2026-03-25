@@ -597,65 +597,60 @@ function deletePhoto(index) {
     renderEvo(db[i].evolution); // Atualiza a galeria na hora
 }
 
-  function savePost() {
-    const id = document.getElementById('edit-id').value;
-    const cat = document.getElementById('post-cat').value;
-    const txt = document.getElementById('post-txt').value;
-    const file = document.getElementById('post-file').files[0];
-    const type = (curTab === 'p-guide') ? 'guide' : 'seasonal';
-    
-    if(!cat || !txt) return alert("Preencha categoria e texto!");
+ function savePost() {
+    // 1. Pega os elementos da tela
+    const campoTexto = document.getElementById('post-txt');
+    const campoFoto = document.getElementById('post-file');
+    const abaAtual = (typeof curTab !== 'undefined' && curTab === 'p-guide') ? 'guide' : 'seasonal';
 
-    const finalizarGravacao = (imgFinal) => {
+    // Se não achou o campo de texto, avisa o parça
+    if (!campoTexto) return alert("Erro: Campo de texto não encontrado no HTML!");
+    if (!campoTexto.value) return alert("Escreva algo no texto!");
+
+    // 2. Função que realmente grava no banco de dados
+    const finalizarGravacao = (imagemProcessada) => {
         try {
-            if(id) {
-                const idx = posts[type].findIndex(p => p.id == id);
-                if(idx !== -1) {
-                    posts[type][idx].category = cat;
-                    posts[type][idx].text = txt;
-                    if(imgFinal) posts[type][idx].img = imgFinal;
-                }
-            } else {
-                posts[type].unshift({ id: Date.now(), category: cat, text: txt, img: imgFinal });
-            }
+            // Garante que o objeto 'posts' existe
+            if (typeof posts === 'undefined') window.posts = { seasonal: [], guide: [] };
+            
+            const novoPost = {
+                id: Date.now(),
+                category: document.getElementById('post-cat')?.value || "Geral",
+                text: campoTexto.value,
+                img: imagemProcessada // Aqui entra a foto real ou null
+            };
 
+            // Adiciona no topo da lista
+            posts[abaAtual].unshift(novoPost);
+
+            // Salva no celular
             localStorage.setItem('bonsai_posts', JSON.stringify(posts));
             
-            // Limpa tudo para o próximo não bugar
-            document.getElementById('edit-id').value = '';
-            document.getElementById('post-cat').value = '';
-            document.getElementById('post-txt').value = '';
-            document.getElementById('post-file').value = '';
-            
-            alert("Agora foi, Parça! Salvo com sucesso. 🌳");
+            // Feedback pro usuário
+            alert(imagemProcessada ? "✅ SUCESSO: Post com foto salvo!" : "⚠️ AVISO: Post salvo sem foto (usando logo).");
+
+            // Limpa e fecha
+            campoTexto.value = "";
+            if (campoFoto) campoFoto.value = "";
             closeAll();
             render();
         } catch (e) {
-            alert("ERRO: O navegador ainda está cheio! Tente apagar posts antigos ou postar sem foto.");
+            alert("ERRO: A foto é muito grande! Tente um print da tela que é mais leve.");
         }
     };
 
-    if(file) {
-        // --- MINI COMPRESSOR INTEGRADO ---
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = (event) => {
-            const img = new Image();
-            img.src = event.target.result;
-            img.onload = () => {
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                // Reduz para no máximo 600px (ideal para posts)
-                const scale = 600 / img.width;
-                canvas.width = 600;
-                canvas.height = img.height * scale;
-                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                // Converte para JPEG com 60% de qualidade (fica levinho)
-                finalizarGravacao(canvas.toDataURL('image/jpeg', 0.6));
-            };
+    // 3. Tenta ler a foto do celular
+    if (campoFoto && campoFoto.files && campoFoto.files[0]) {
+        const leitor = new FileReader();
+        leitor.onload = function(evento) {
+            finalizarGravacao(evento.target.result); // Conseguiu ler a foto!
         };
+        leitor.onerror = function() {
+            finalizarGravacao(null); // Erro na leitura, salva sem foto
+        };
+        leitor.readAsDataURL(campoFoto.files[0]);
     } else {
-        finalizarGravacao(null);
+        finalizarGravacao(null); // Não escolheu foto, salva só texto
     }
 }
   function render() {
