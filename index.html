@@ -598,59 +598,64 @@ function deletePhoto(index) {
 }
 
  function savePost() {
-    // 1. Pega os elementos da tela
-    const campoTexto = document.getElementById('post-txt');
-    const campoFoto = document.getElementById('post-file');
-    const abaAtual = (typeof curTab !== 'undefined' && curTab === 'p-guide') ? 'guide' : 'seasonal';
+    const txtEl = document.getElementById('post-txt');
+    const fileEl = document.getElementById('post-file');
+    const catEl = document.getElementById('post-cat');
+    
+    if (!txtEl || !txtEl.value) return alert("Escreva o texto, Parça!");
 
-    // Se não achou o campo de texto, avisa o parça
-    if (!campoTexto) return alert("Erro: Campo de texto não encontrado no HTML!");
-    if (!campoTexto.value) return alert("Escreva algo no texto!");
-
-    // 2. Função que realmente grava no banco de dados
-    const finalizarGravacao = (imagemProcessada) => {
+    const executarGravacao = (imgData) => {
         try {
-            // Garante que o objeto 'posts' existe
-            if (typeof posts === 'undefined') window.posts = { seasonal: [], guide: [] };
-            
+            // 1. GARANTE QUE O OBJETO GLOBAL EXISTE
+            if (typeof posts === 'undefined' || !posts) {
+                window.posts = JSON.parse(localStorage.getItem('bonsai_posts')) || { seasonal: [], guide: [] };
+            }
+
+            const tipo = (typeof curTab !== 'undefined' && curTab === 'p-guide') ? 'guide' : 'seasonal';
+            const idEdicao = document.getElementById('edit-id')?.value;
+
             const novoPost = {
-                id: Date.now(),
-                category: document.getElementById('post-cat')?.value || "Geral",
-                text: campoTexto.value,
-                img: imagemProcessada // Aqui entra a foto real ou null
+                id: idEdicao ? Number(idEdicao) : Date.now(),
+                category: catEl?.value || "Geral",
+                text: txtEl.value,
+                img: imgData || null
             };
 
-            // Adiciona no topo da lista
-            posts[abaAtual].unshift(novoPost);
+            // 2. ATUALIZA OU INSERE
+            if (idEdicao) {
+                const idx = posts[tipo].findIndex(p => p.id == idEdicao);
+                if (idx !== -1) posts[tipo][idx] = novoPost;
+            } else {
+                posts[tipo].unshift(novoPost);
+            }
 
-            // Salva no celular
-            localStorage.setItem('bonsai_posts', JSON.stringify(posts));
+            // 3. TENTA GRAVAR NO DISCO (O MOMENTO CRÍTICO)
+            const stringParaSalvar = JSON.stringify(posts);
+            localStorage.setItem('bonsai_posts', stringParaSalvar);
             
-            // Feedback pro usuário
-            alert(imagemProcessada ? "✅ SUCESSO: Post com foto salvo!" : "⚠️ AVISO: Post salvo sem foto (usando logo).");
-
-            // Limpa e fecha
-            campoTexto.value = "";
-            if (campoFoto) campoFoto.value = "";
+            alert("✅ SALVO DEFINITIVO!");
+            
+            // Limpa campos e fecha
+            txtEl.value = "";
+            if(fileEl) fileEl.value = "";
             closeAll();
             render();
-        } catch (e) {
-            alert("ERRO: A foto é muito grande! Tente um print da tela que é mais leve.");
+
+        } catch (err) {
+            console.error(err);
+            // SE CAIR AQUI, A MEMÓRIA DO CELULAR ENCHEU
+            alert("❌ ERRO DE MEMÓRIA: O post é muito grande! Tente tirar um PRINT da foto e usar o print, ele é bem mais leve.");
         }
     };
 
-    // 3. Tenta ler a foto do celular
-    if (campoFoto && campoFoto.files && campoFoto.files[0]) {
-        const leitor = new FileReader();
-        leitor.onload = function(evento) {
-            finalizarGravacao(evento.target.result); // Conseguiu ler a foto!
-        };
-        leitor.onerror = function() {
-            finalizarGravacao(null); // Erro na leitura, salva sem foto
-        };
-        leitor.readAsDataURL(campoFoto.files[0]);
+    // Lógica da Foto
+    if (fileEl && fileEl.files && fileEl.files[0]) {
+        const reader = new FileReader();
+        reader.onload = (e) => executarGravacao(e.target.result);
+        reader.onerror = () => executarGravacao(null);
+        reader.readAsDataURL(fileEl.files[0]);
     } else {
-        finalizarGravacao(null); // Não escolheu foto, salva só texto
+        executarGravacao(null);
     }
 }
   function render() {
