@@ -598,103 +598,69 @@ function deletePhoto(index) {
 }
 
 function savePost() {
-    console.log("Iniciando gravação forçada...");
+    console.log("Iniciando Operação Trator...");
 
-    // 1. PEGA OS DADOS (Com nomes alternativos para não dar erro)
-    const catEl = document.getElementById('post-cat') || document.getElementById('in-cat');
-    const txtEl = document.getElementById('post-txt') || document.getElementById('in-txt');
-    const fileEl = document.getElementById('post-file') || document.getElementById('in-photo');
-    const editIdEl = document.getElementById('edit-id');
-
-    if (!catEl || !txtEl) {
-        alert("Erro: Campos de texto não encontrados no HTML!");
-        return;
-    }
-
-    const category = catEl.value;
-    const text = txtEl.value;
-    const id = editIdEl ? editIdEl.value : "";
+    // 1. CAPTURA DOS CAMPOS (Com '?' para não travar se o ID sumir)
+    const cat = document.getElementById('post-cat')?.value || "Geral";
+    const txt = document.getElementById('post-txt')?.value;
+    const fileEl = document.getElementById('post-file');
+    const editId = document.getElementById('edit-id')?.value;
     const type = (curTab === 'p-guide') ? 'guide' : 'seasonal';
 
-    // 2. FUNÇÃO INTERNA DE SALVAMENTO REAL
-    const finalizarEGravar = (imgBase64) => {
+    if (!txt) return alert("Escreva algo no texto, Parça!");
+
+    // 2. FUNÇÃO QUE REALMENTE ESCREVE NO DISCO
+    const forcarGravacao = (imgData) => {
         try {
-            if (id) {
-                const idx = posts[type].findIndex(p => p.id == id);
-                if (idx !== -1) {
-                    posts[type][idx].category = category;
-                    posts[type][idx].text = text;
-                    if (imgBase64) posts[type][idx].img = imgBase64;
-                }
-            } else {
-                posts[type].unshift({
-                    id: Date.now(),
-                    category: category,
-                    text: text,
-                    img: imgBase64 || null
-                });
+            // Verifica se a variável global existe, se não, cria na hora
+            if (typeof posts === 'undefined') {
+                window.posts = { seasonal: [], guide: [] };
             }
 
-            // --- PASSO CRÍTICO: GRAVAR NO DISCO ---
-            localStorage.setItem('bonsai_posts', JSON.stringify(posts));
-            
-            // Se chegou aqui, o dado está salvo no celular!
-            alert("SALVOU NO DISCO! 🌳");
+            const novoPost = {
+                id: Date.now(),
+                category: cat,
+                text: txt,
+                img: imgData || null
+            };
 
-            // Limpa os campos
-            catEl.value = "";
-            txtEl.value = "";
-            if(editIdEl) editIdEl.value = "";
+            if (editId) {
+                const idx = posts[type].findIndex(p => p.id == editId);
+                if (idx !== -1) posts[type][idx] = novoPost;
+            } else {
+                posts[type].unshift(novoPost);
+            }
+
+            // --- O MOMENTO DA VERDADE ---
+            const stringParaSalvar = JSON.stringify(posts);
+            localStorage.setItem('bonsai_posts', stringParaSalvar);
             
-            // Fecha a tela (com trava de erro)
-            const overlay = document.getElementById('overlay-post') || document.querySelector('.overlay');
-            if(overlay) overlay.style.display = 'none';
+            // Se o código chegar aqui, SALVOU DE VERDADE
+            alert("✅ PEDRA QUEBRADA! Salvo com sucesso.");
             
+            // Limpa e fecha tudo
+            if(document.getElementById('post-txt')) document.getElementById('post-txt').value = "";
+            if(document.getElementById('edit-id')) document.getElementById('edit-id').value = "";
+            
+            closeAll();
             render();
-        } catch (e) {
-            console.error(e);
-            alert("MEMÓRIA CHEIA: O post é muito grande para o celular!");
+        } catch (err) {
+            console.error(err);
+            alert("❌ ERRO FATAL: O celular recusou o salvamento. Tente sem foto!");
         }
     };
 
-    // 3. LOGICA DA FOTO (FLEXÍVEL)
+    // 3. TRATAMENTO DA FOTO (Se tiver, tenta carregar. Se falhar ou não tiver, salva o texto!)
     if (fileEl && fileEl.files[0]) {
         const reader = new FileReader();
-        reader.onload = (e) => {
-            // Se tiver foto, salva com foto (o compressor ajudaria aqui)
-            finalizarEGravar(e.target.result);
-        };
+        reader.onload = (e) => forcarGravacao(e.target.result);
+        reader.onerror = () => forcarGravacao(null); // Se der erro na foto, salva só o texto
         reader.readAsDataURL(fileEl.files[0]);
     } else {
-        // SE NÃO TIVER FOTO, SALVA SÓ O TEXTO (Isso destrava o seu erro!)
-        finalizarEGravar(null);
+        forcarGravacao(null);
     }
-}
-    // 3. LÓGICA DA FOTO (SÓ PROCESSA SE O USUÁRIO ESCOLHER UMA)
-    if(fileInput && fileInput.files[0]) {
-        const reader = new FileReader();
-        reader.readAsDataURL(fileInput.files[0]);
-        reader.onload = (e) => {
-            const img = new Image();
-            img.src = e.target.result;
-            img.onload = () => {
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                const MAX_WIDTH = 600; 
-                const scale = MAX_WIDTH / img.width;
-                canvas.width = MAX_WIDTH;
-                canvas.height = img.height * scale;
-                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                
-                // Salva com foto comprimida
-                gravarNoBanco(canvas.toDataURL('image/jpeg', 0.5));
-            };
-        };
-    } else {
-        // SE NÃO TEM FOTO, CHAMA O SALVAMENTO SÓ COM TEXTO
-        gravarNoBanco(null);
-    }
-}
+}	
+	
 	function render() {
     // Render do Jardim
     const gList = document.getElementById('bonsai-list');
