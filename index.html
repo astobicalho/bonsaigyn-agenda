@@ -337,13 +337,6 @@ body {
 </nav>
 
 <script>
-	// TESTE DE VIDA - COLE NO TOPO DO SCRIPT
-console.log("O Script carregou!");
-alert("SISTEMA ONLINE!"); 
-
-function testeRapido() {
-    alert("O BOTÃO ESTÁ FALANDO COM O SCRIPT!");
-}
 	const LOGO_APP = "https://i.ibb.co/whS5FNrr/logo-2.png";
 
 // Função simples para atualizar todas as logos do app de uma vez
@@ -604,7 +597,6 @@ function deletePhoto(index) {
     renderEvo(db[i].evolution); // Atualiza a galeria na hora
 }
 
-
   function savePost() {
     const id = document.getElementById('edit-id').value;
     const cat = document.getElementById('post-cat').value;
@@ -666,24 +658,23 @@ function deletePhoto(index) {
         finalizarGravacao(null);
     }
 }
-	
-	function render() {
-    // 1. Render do Jardim (Bonsai Individual)
+  function render() {
+    // Render do Jardim
     const gList = document.getElementById('bonsai-list');
     if(gList) {
         gList.innerHTML = db.map(b => `
             <div class="card" onclick="showBonsai(${b.id})">
-                <img src="${b.img || 'https://i.ibb.co/whS5FNrr/logo-2.png'}" style="width:100%; border-radius:8px;">
+                <img src="${b.img}">
                 <br><b>${b.name}</b>
             </div>`).join('');
     }
 
-    // 2. Render das abas Sazonal e Guia (Posts)
+    // Render das abas Sazonal e Guia (Padronizado)
     ['seasonal', 'guide'].forEach(type => {
         const container = document.getElementById(`posts-${type}`);
         if(!container) return;
 
-        // Agrupa por categoria
+        // Agrupa por categoria para manter seu layout
         const grouped = (posts[type] || []).reduce((acc, obj) => {
             const key = obj.category || 'Dicas';
             if (!acc[key]) acc[key] = [];
@@ -697,29 +688,20 @@ function deletePhoto(index) {
                     ${catName.toUpperCase()} <span>▼</span>
                 </div>
                 <div class="category-content">
-                    ${grouped[catName].map(p => {
-                        // LÓGICA DA FOTO: Se tem foto real, mostra. Se não, mostra a logo discreta.
-                        const exibirFoto = (p.img && p.img.includes('data:image')) 
-                            ? `<div class="post-img-frame" style="margin-bottom:10px;">
-                                 <img src="${p.img}" style="width:100%; border-radius:10px; border: 1px solid #444;">
-                               </div>` 
-                            : `<div class="post-img-frame" style="margin-bottom:10px; opacity:0.3;">
-                                 <img src="https://i.ibb.co/whS5FNrr/logo-2.png" style="width:50px; display:block; margin:0 auto;">
-                               </div>`;
-
-                        return `
-                            <div class="post-block" style="border-bottom: 1px solid #333; padding: 15px 0;">
-                                ${exibirFoto}
-                                <p style="white-space: pre-wrap; color: #ccc; font-size: 14px;">${p.text}</p>
-                                
-                                ${isAdmin ? `
-                                    <div style="margin-top:10px; display: flex; gap: 15px;">
-                                        <button onclick="editPost('${type}', ${p.id})" style="background:none; border:none; cursor:pointer; font-size:18px;">✏️</button>
-                                        <button onclick="delPost('${type}', ${p.id})" style="background:none; border:none; cursor:pointer; font-size:18px;" title="Excluir">🗑️</button>
-                                    </div>` : ''}
-                            </div>
-                        `;
-                    }).join('')}
+                    ${grouped[catName].map(p => `
+                        <div class="post-block" style="border-bottom: 1px solid #333; padding: 15px 0;">
+                            ${p.img ? `<div class="post-img-frame"><img src="${p.img}"></div>` : ''}
+                            <p style="white-space: pre-wrap;">${p.text}</p>
+                            
+                            ${isAdmin ? `
+                                <div style="margin-top:10px;">
+                                    <button onclick="editPost('${type}', ${p.id})" style="color:var(--light-green); background:none; border:none; cursor:pointer;">✏️</button>
+                                   <button onclick="delPost('${type}', ${p.id})" style="background:none; border:none; cursor:pointer; font-size: 20px;" title="Excluir">
+    🗑️
+</button>
+                                </div>` : ''}
+                        </div>
+                    `).join('')}
                 </div>
             </div>
         `).join('');
@@ -935,89 +917,6 @@ function limparCachePesado() {
         location.reload();
     }
 }
-	// --- COPIE DAQUI ---
-
-// 1. A FUNÇÃO FALTANTE QUE CAUSA O ERRO
-function comprimirFoto(file, callback) {
-    // Verificação simples: se não houver arquivo, não faz nada
-    if (!file) {
-        callback(null);
-        return;
-    }
-
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-
-    reader.onload = (e) => {
-        const img = new Image();
-        img.src = e.target.result;
-        img.onload = () => {
-            const canvas = document.createElement('canvas');
-            
-            // Reduz o tamanho máximo para celular (rápido e leve)
-            const MAX_WIDTH = 800; 
-            let width = img.width;
-            let height = img.height;
-
-            if (width > MAX_WIDTH) {
-                height *= MAX_WIDTH / width;
-                width = MAX_WIDTH;
-            }
-
-            canvas.width = width;
-            canvas.height = height;
-            
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0, width, height);
-            
-            // Gera um JPEG 60% leve (para não estourar a memória)
-            callback(canvas.toDataURL('image/jpeg', 0.6));
-        };
-        img.onerror = () => callback(null); // Segue em frente se der erro
-    };
-    reader.onerror = () => callback(null); // Segue em frente se der erro
-}
-
-// 2. FUNÇÃO saveNewBonsai ATUALIZADA (Para destravar os campos de input)
-function saveNewBonsai() {
-    console.log("Tentando salvar...");
-
-    // 1. CAPTURA BRUTA (Tenta os dois nomes mais comuns que você usou)
-    const nameEl = document.getElementById('f-name') || document.getElementById('in-name');
-    const photoEl = document.getElementById('f-photo') || document.getElementById('in-photo');
-
-    if (!nameEl || !nameEl.value) {
-        alert("Erro: Não achei o campo de nome no HTML!");
-        return;
-    }
-
-    try {
-        // 2. CRIA O OBJETO MÍNIMO (SEM FOTO PARA TESTAR)
-        const novoBonsai = {
-            id: Date.now(),
-            name: nameEl.value,
-            img: "https://i.ibb.co/whS5FNrr/logo-2.png", // Sua logo de reserva
-            notes: '', trans: '', adub: '', evolution: []
-        };
-
-        // 3. FORÇA A GRAVAÇÃO
-        db.push(novoBonsai);
-        localStorage.setItem('bonsai_db', JSON.stringify(db));
-
-        // 4. FEEDBACK IMEDIATO
-        alert("SALVOU NO JARDIM! 🌳");
-        
-        // Limpa o campo
-        nameEl.value = "";
-        if(photoEl) photoEl.value = "";
-        
-        closeAll();
-        render();
-
-    } catch (e) {
-        console.error(e);
-        alert("Erro no banco de dados: " + e.message);
-    }
-}</script>
+</script>
 </body>
 </html>
