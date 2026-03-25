@@ -598,7 +598,27 @@ function deletePhoto(index) {
 }
 
 function savePost() {
-    alert("O BOTÃO ESTÁ FUNCIONANDO!");
+    // Pega o que o parça digitou
+    const texto = document.getElementById('post-txt')?.value;
+    
+    if(!texto) {
+        alert("Escreva algo no texto!");
+        return;
+    }
+
+    // Tenta salvar no 'posts' (ou cria se não existir)
+    if (typeof posts === 'undefined') window.posts = { seasonal: [], guide: [] };
+    
+    const novo = { id: Date.now(), category: "Teste", text: texto, img: null };
+    posts.seasonal.unshift(novo);
+
+    // Grava no disco
+    localStorage.setItem('bonsai_posts', JSON.stringify(posts));
+
+    // A MENSAGEM QUE VOCÊ QUER VER:
+    alert("✅ SALVO COM SUCESSO!");
+    
+    location.reload(); // Recarrega para forçar a exibição
 }
 	function render() {
     // Render do Jardim
