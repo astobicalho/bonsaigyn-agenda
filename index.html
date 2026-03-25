@@ -337,19 +337,7 @@ body {
 </nav>
 
 <script>
-	// Altere sua trava de segurança para isso:
-document.onkeydown = function(e) {
-    // Se estiver rodando local (C:/Users...), libera o F12 para você trabalhar
-    if (window.location.protocol === 'file:') {
-        return true; 
-    }
-
-    // Se estiver no site real, bloqueia tudo
-    if (e.keyCode == 123 || (e.ctrlKey && e.shiftKey && (e.keyCode == 73 || e.keyCode == 74)) || (e.ctrlKey && e.keyCode == 85)) {
-        return false;
-    }
-};
-const LOGO_APP = "https://i.ibb.co/whS5FNrr/logo-2.png";
+	const LOGO_APP = "https://i.ibb.co/whS5FNrr/logo-2.png";
 
 // Função simples para atualizar todas as logos do app de uma vez
 function atualizarLogos() {
