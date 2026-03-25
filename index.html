@@ -658,23 +658,23 @@ function savePost() {
         // Se não escolheu foto, aí sim ele salva sem foto (null)
         gravar(null);
     }
-}	function render() {
-    // Render do Jardim
+function render() {
+    // 1. Render do Jardim (Bonsai Individual)
     const gList = document.getElementById('bonsai-list');
     if(gList) {
         gList.innerHTML = db.map(b => `
             <div class="card" onclick="showBonsai(${b.id})">
-                <img src="${b.img}">
+                <img src="${b.img || 'https://i.ibb.co/whS5FNrr/logo-2.png'}" style="width:100%; border-radius:8px;">
                 <br><b>${b.name}</b>
             </div>`).join('');
     }
 
-    // Render das abas Sazonal e Guia (Padronizado)
+    // 2. Render das abas Sazonal e Guia (Posts)
     ['seasonal', 'guide'].forEach(type => {
         const container = document.getElementById(`posts-${type}`);
         if(!container) return;
 
-        // Agrupa por categoria para manter seu layout
+        // Agrupa por categoria
         const grouped = (posts[type] || []).reduce((acc, obj) => {
             const key = obj.category || 'Dicas';
             if (!acc[key]) acc[key] = [];
@@ -688,20 +688,29 @@ function savePost() {
                     ${catName.toUpperCase()} <span>▼</span>
                 </div>
                 <div class="category-content">
-                    ${grouped[catName].map(p => `
-                        <div class="post-block" style="border-bottom: 1px solid #333; padding: 15px 0;">
-                            ${p.img ? `<div class="post-img-frame"><img src="${p.img}"></div>` : ''}
-                            <p style="white-space: pre-wrap;">${p.text}</p>
-                            
-                            ${isAdmin ? `
-                                <div style="margin-top:10px;">
-                                    <button onclick="editPost('${type}', ${p.id})" style="color:var(--light-green); background:none; border:none; cursor:pointer;">✏️</button>
-                                   <button onclick="delPost('${type}', ${p.id})" style="background:none; border:none; cursor:pointer; font-size: 20px;" title="Excluir">
-    🗑️
-</button>
-                                </div>` : ''}
-                        </div>
-                    `).join('')}
+                    ${grouped[catName].map(p => {
+                        // LÓGICA DA FOTO: Se tem foto real, mostra. Se não, mostra a logo discreta.
+                        const exibirFoto = (p.img && p.img.includes('data:image')) 
+                            ? `<div class="post-img-frame" style="margin-bottom:10px;">
+                                 <img src="${p.img}" style="width:100%; border-radius:10px; border: 1px solid #444;">
+                               </div>` 
+                            : `<div class="post-img-frame" style="margin-bottom:10px; opacity:0.3;">
+                                 <img src="https://i.ibb.co/whS5FNrr/logo-2.png" style="width:50px; display:block; margin:0 auto;">
+                               </div>`;
+
+                        return `
+                            <div class="post-block" style="border-bottom: 1px solid #333; padding: 15px 0;">
+                                ${exibirFoto}
+                                <p style="white-space: pre-wrap; color: #ccc; font-size: 14px;">${p.text}</p>
+                                
+                                ${isAdmin ? `
+                                    <div style="margin-top:10px; display: flex; gap: 15px;">
+                                        <button onclick="editPost('${type}', ${p.id})" style="background:none; border:none; cursor:pointer; font-size:18px;">✏️</button>
+                                        <button onclick="delPost('${type}', ${p.id})" style="background:none; border:none; cursor:pointer; font-size:18px;" title="Excluir">🗑️</button>
+                                    </div>` : ''}
+                            </div>
+                        `;
+                    }).join('')}
                 </div>
             </div>
         `).join('');
