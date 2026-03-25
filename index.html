@@ -975,32 +975,50 @@ function comprimirFoto(file, callback) {
 
 // 2. FUNÇÃO saveNewBonsai ATUALIZADA (Para destravar os campos de input)
 function saveNewBonsai() {
-    console.log("Iniciando salvamento de Bonsai...");
-    
-    const inputNome = document.getElementById('in-name');
-    const inputRep = document.getElementById('in-rep');
-    const inputAdu = document.getElementById('in-adu');
-    const inputObs = document.getElementById('in-obs');
-    const inputFoto = document.getElementById('in-photo');
+    const nameInput = document.getElementById('f-name');
+    const photoInput = document.getElementById('f-photo');
+    const btn = document.querySelector('.btn-salvar'); // Ajuste a classe se for outra
 
-    if (!inputNome || !inputNome.value) {
-        return alert('Parça, dê um nome para o seu Bonsai!');
+    // 1. SÓ O NOME É OBRIGATÓRIO AGORA!
+    if (!nameInput || !nameInput.value) {
+        return alert('Dê um nome para a planta, Parça!');
     }
 
-    const fotoFile = inputFoto ? inputFoto.files[0] : null;
+    if (btn) { btn.disabled = true; btn.innerText = "SALVANDO..."; }
 
-    // Usando a função faltante para comprimir a foto
-    comprimirFoto(fotoFile, (imgFinalB64) => {
+    const finalizar = (imgBase64) => {
         try {
-            const dadosBonsai = {
-                id: Date.now(), // ID único baseado no tempo
-                name: inputNome.value,
-                rep: inputRep ? inputRep.value : '',
-                adu: inputAdu ? inputAdu.value : '',
-                obs: inputObs ? inputObs.value : '',
-                img: imgFinalB64 || 'https://via.placeholder.com/150', // Imagem padrão se não houver foto
-                evo: [] // Começa sem evolução
+            const novo = { 
+                id: Date.now(), 
+                name: nameInput.value, 
+                img: imgBase64 || "https://i.ibb.co/whS5FNrr/logo-2.png", // Foto padrão se estiver vazio
+                notes: '', trans: '', adub: '', evolution: [] 
             };
+            
+            db.push(novo);
+            localStorage.setItem('bonsai_db', JSON.stringify(db));
+
+            // Limpeza e Sucesso
+            nameInput.value = '';
+            if(photoInput) photoInput.value = '';
+            
+            alert("Bonsai cadastrado! 🌳");
+            closeAll();
+            render();
+        } catch (err) {
+            alert("Memória cheia! Tente apagar plantas antigas.");
+        } finally {
+            if (btn) { btn.disabled = false; btn.innerText = "CADASTRAR"; }
+        }
+    };
+
+    // 2. LÓGICA FLEXÍVEL: TEM FOTO? COMPRIME. NÃO TEM? SEGUE O BAILE.
+    if (photoInput && photoInput.files[0]) {
+        comprimirFoto(photoInput.files[0], (res) => finalizar(res));
+    } else {
+        finalizar(null); // Salva sem foto sem travar!
+    }
+}
 
             // Adiciona ao banco de dados e salva
             db.push(dadosBonsai);
