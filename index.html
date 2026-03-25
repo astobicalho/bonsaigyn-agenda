@@ -597,83 +597,115 @@ function deletePhoto(index) {
     renderEvo(db[i].evolution); // Atualiza a galeria na hora
 }
 
- function savePost() {
-    // 1. Pega os elementos da tela
-    const campoTexto = document.getElementById('post-txt');
-    const campoFoto = document.getElementById('post-file');
-    const abaAtual = (typeof curTab !== 'undefined' && curTab === 'p-guide') ? 'guide' : 'seasonal';
+  function savePost() {
+    const id = document.getElementById('edit-id').value;
+    const cat = document.getElementById('post-cat').value;
+    const txt = document.getElementById('post-txt').value;
+    const file = document.getElementById('post-file').files[0];
+    const type = (curTab === 'p-guide') ? 'guide' : 'seasonal';
+    
+    if(!cat || !txt) return alert("Preencha categoria e texto!");
 
-    // Se não achou o campo de texto, avisa o parça
-    if (!campoTexto) return alert("Erro: Campo de texto não encontrado no HTML!");
-    if (!campoTexto.value) return alert("Escreva algo no texto!");
-
-    // 2. Função que realmente grava no banco de dados
-    const finalizarGravacao = (imagemProcessada) => {
+    const finalizarGravacao = (imgFinal) => {
         try {
-            // Garante que o objeto 'posts' existe
-            if (typeof posts === 'undefined') window.posts = { seasonal: [], guide: [] };
-            
-            const novoPost = {
-                id: Date.now(),
-                category: document.getElementById('post-cat')?.value || "Geral",
-                text: campoTexto.value,
-                img: imagemProcessada // Aqui entra a foto real ou null
-            };
+            if(id) {
+                const idx = posts[type].findIndex(p => p.id == id);
+                if(idx !== -1) {
+                    posts[type][idx].category = cat;
+                    posts[type][idx].text = txt;
+                    if(imgFinal) posts[type][idx].img = imgFinal;
+                }
+            } else {
+                posts[type].unshift({ id: Date.now(), category: cat, text: txt, img: imgFinal });
+            }
 
-            // Adiciona no topo da lista
-            posts[abaAtual].unshift(novoPost);
-
-            // Salva no celular
             localStorage.setItem('bonsai_posts', JSON.stringify(posts));
             
-            // Feedback pro usuário
-            alert(imagemProcessada ? "✅ SUCESSO: Post com foto salvo!" : "⚠️ AVISO: Post salvo sem foto (usando logo).");
-
-            // Limpa e fecha
-            campoTexto.value = "";
-            if (campoFoto) campoFoto.value = "";
+            // Limpa tudo para o próximo não bugar
+            document.getElementById('edit-id').value = '';
+            document.getElementById('post-cat').value = '';
+            document.getElementById('post-txt').value = '';
+            document.getElementById('post-file').value = '';
+            
+            alert("Agora foi, Parça! Salvo com sucesso. 🌳");
             closeAll();
             render();
         } catch (e) {
-            alert("ERRO: A foto é muito grande! Tente um print da tela que é mais leve.");
+            alert("ERRO: O navegador ainda está cheio! Tente apagar posts antigos ou postar sem foto.");
         }
     };
 
-    // 3. Tenta ler a foto do celular
-    if (campoFoto && campoFoto.files && campoFoto.files[0]) {
-        const leitor = new FileReader();
-        leitor.onload = function(evento) {
-            finalizarGravacao(evento.target.result); // Conseguiu ler a foto!
+    if(file) {
+        // --- MINI COMPRESSOR INTEGRADO ---
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = (event) => {
+            const img = new Image();
+            img.src = event.target.result;
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                // Reduz para no máximo 600px (ideal para posts)
+                const scale = 600 / img.width;
+                canvas.width = 600;
+                canvas.height = img.height * scale;
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                // Converte para JPEG com 60% de qualidade (fica levinho)
+                finalizarGravacao(canvas.toDataURL('image/jpeg', 0.6));
+            };
         };
-        leitor.onerror = function() {
-            finalizarGravacao(null); // Erro na leitura, salva sem foto
-        };
-        leitor.readAsDataURL(campoFoto.files[0]);
     } else {
-        finalizarGravacao(null); // Não escolheu foto, salva só texto
+        finalizarGravacao(null);
     }
 }
- // Procure algo parecido com isso dentro do seu <script>:
-function render() {
-    const container = document.getElementById('posts-container'); // ou outro ID de lista
-    let html = '';
+  function render() {
+    // Render do Jardim
+    const gList = document.getElementById('bonsai-list');
+    if(gList) {
+        gList.innerHTML = db.map(b => `
+            <div class="card" onclick="showBonsai(${b.id})">
+                <img src="${b.img}">
+                <br><b>${b.name}</b>
+            </div>`).join('');
+    }
 
-    posts[type].forEach((p) => {
-        // --- AQUI ESTÁ A MUDANÇA ---
-        // 1. Criamos a regra: se p.img existir, usa ela. Se não, usa a logo.
-        const fotoFinal = p.img ? p.img : "https://i.ibb.co/whS5FNrr/logo-2.png";
+    // Render das abas Sazonal e Guia (Padronizado)
+    ['seasonal', 'guide'].forEach(type => {
+        const container = document.getElementById(`posts-${type}`);
+        if(!container) return;
 
-        // 2. No innerHTML, trocamos o link fixo por ${fotoFinal}
-        html += `
-            <div class="card">
-                <img src="${fotoFinal}" style="width:100%; border-radius:10px;">
-                <h3>${p.category}</h3>
-                <p>${p.text}</p>
+        // Agrupa por categoria para manter seu layout
+        const grouped = (posts[type] || []).reduce((acc, obj) => {
+            const key = obj.category || 'Dicas';
+            if (!acc[key]) acc[key] = [];
+            acc[key].push(obj);
+            return acc;
+        }, {});
+
+        container.innerHTML = Object.keys(grouped).map(catName => `
+            <div class="category-item">
+                <div class="category-header" onclick="this.parentElement.classList.toggle('open')">
+                    ${catName.toUpperCase()} <span>▼</span>
+                </div>
+                <div class="category-content">
+                    ${grouped[catName].map(p => `
+                        <div class="post-block" style="border-bottom: 1px solid #333; padding: 15px 0;">
+                            ${p.img ? `<div class="post-img-frame"><img src="${p.img}"></div>` : ''}
+                            <p style="white-space: pre-wrap;">${p.text}</p>
+                            
+                            ${isAdmin ? `
+                                <div style="margin-top:10px;">
+                                    <button onclick="editPost('${type}', ${p.id})" style="color:var(--light-green); background:none; border:none; cursor:pointer;">✏️</button>
+                                   <button onclick="delPost('${type}', ${p.id})" style="background:none; border:none; cursor:pointer; font-size: 20px;" title="Excluir">
+    🗑️
+</button>
+                                </div>` : ''}
+                        </div>
+                    `).join('')}
+                </div>
             </div>
-        `;
+        `).join('');
     });
-
-    container.innerHTML = html; // Esse é o innerHTML que manda pra tela!
 }
 // FUNÇÃO EXCLUIR (SAZONAL E GUIA)
 function delPost(type, id) {
