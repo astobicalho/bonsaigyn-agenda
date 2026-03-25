@@ -312,7 +312,7 @@ body {
     <h2>Novo Bonsai</h2>
     <input type="text" id="f-name" placeholder="Nome da Planta">
     <input type="file" id="f-photo" accept="image/*">
-    <button class="btn-main" onclick="saveNewBonsai()">CADASTRAR</button>
+    <button onclick="testeRapido()">TESTAR AGORA</button>
     <button class="btn-main" style="background:none; color:white;" onclick="closeAll()">CANCELAR</button>
 </div>
 
@@ -337,6 +337,13 @@ body {
 </nav>
 
 <script>
+	// TESTE DE VIDA - COLE NO TOPO DO SCRIPT
+console.log("O Script carregou!");
+alert("SISTEMA ONLINE!"); 
+
+function testeRapido() {
+    alert("O BOTÃO ESTÁ FALANDO COM O SCRIPT!");
+}
 	const LOGO_APP = "https://i.ibb.co/whS5FNrr/logo-2.png";
 
 // Função simples para atualizar todas as logos do app de uma vez
