@@ -604,68 +604,70 @@ function deletePhoto(index) {
     renderEvo(db[i].evolution); // Atualiza a galeria na hora
 }
 
-function savePost() {
-    console.log("Iniciando salvamento...");
 
-    // 1. PEGA OS CAMPOS (Verifique se os IDs no seu HTML são esses mesmos!)
-    const cat = document.getElementById('post-cat')?.value || "Geral";
-    const txt = document.getElementById('post-txt')?.value;
-    const fileInput = document.getElementById('post-file'); // O ID do <input type="file">
-    const editId = document.getElementById('edit-id')?.value;
+  function savePost() {
+    const id = document.getElementById('edit-id').value;
+    const cat = document.getElementById('post-cat').value;
+    const txt = document.getElementById('post-txt').value;
+    const file = document.getElementById('post-file').files[0];
     const type = (curTab === 'p-guide') ? 'guide' : 'seasonal';
+    
+    if(!cat || !txt) return alert("Preencha categoria e texto!");
 
-    if (!txt) return alert("Escreva o texto antes!");
-
-    const gravarFinal = (imgData) => {
+    const finalizarGravacao = (imgFinal) => {
         try {
-            if (typeof posts === 'undefined') window.posts = { seasonal: [], guide: [] };
-            
-            const novoPost = {
-                id: editId ? Number(editId) : Date.now(),
-                category: cat,
-                text: txt,
-                img: imgData // Aqui deve entrar a foto convertida
-            };
-
-            if (editId) {
-                const idx = posts[type].findIndex(p => p.id == editId);
-                if (idx !== -1) posts[type][idx] = novoPost;
+            if(id) {
+                const idx = posts[type].findIndex(p => p.id == id);
+                if(idx !== -1) {
+                    posts[type][idx].category = cat;
+                    posts[type][idx].text = txt;
+                    if(imgFinal) posts[type][idx].img = imgFinal;
+                }
             } else {
-                posts[type].unshift(novoPost);
+                posts[type].unshift({ id: Date.now(), category: cat, text: txt, img: imgFinal });
             }
 
             localStorage.setItem('bonsai_posts', JSON.stringify(posts));
             
-            // AVISO DE SUCESSO
-            alert(imgData ? "✅ SALVOU COM FOTO!" : "⚠️ SALVOU APENAS TEXTO (Sem foto)");
-
+            // Limpa tudo para o próximo não bugar
+            document.getElementById('edit-id').value = '';
+            document.getElementById('post-cat').value = '';
+            document.getElementById('post-txt').value = '';
+            document.getElementById('post-file').value = '';
+            
+            alert("Agora foi, Parça! Salvo com sucesso. 🌳");
             closeAll();
             render();
         } catch (e) {
-            alert("ERRO: Foto muito pesada para o celular. Tente outra!");
+            alert("ERRO: O navegador ainda está cheio! Tente apagar posts antigos ou postar sem foto.");
         }
     };
 
-    // 2. O MOMENTO DA VERDADE: LENDO A FOTO
-    if (fileInput && fileInput.files && fileInput.files[0]) {
+    if(file) {
+        // --- MINI COMPRESSOR INTEGRADO ---
         const reader = new FileReader();
-        
-        reader.onload = function(e) {
-            console.log("Foto lida com sucesso!");
-            gravarFinal(e.target.result); // Envia a foto convertida para o gravador
+        reader.readAsDataURL(file);
+        reader.onload = (event) => {
+            const img = new Image();
+            img.src = event.target.result;
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                // Reduz para no máximo 600px (ideal para posts)
+                const scale = 600 / img.width;
+                canvas.width = 600;
+                canvas.height = img.height * scale;
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                // Converte para JPEG com 60% de qualidade (fica levinho)
+                finalizarGravacao(canvas.toDataURL('image/jpeg', 0.6));
+            };
         };
-
-        reader.onerror = function() {
-            alert("Erro ao ler o arquivo do celular!");
-            gravarFinal(null);
-        };
-
-        reader.readAsDataURL(fileInput.files[0]); // Transforma a foto em texto (Base64)
     } else {
-        // Se cair aqui, o código não achou o arquivo selecionado
-        gravarFinal(null);
+        finalizarGravacao(null);
     }
-}function render() {
+}
+	
+	function render() {
     // 1. Render do Jardim (Bonsai Individual)
     const gList = document.getElementById('bonsai-list');
     if(gList) {
