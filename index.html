@@ -975,51 +975,44 @@ function comprimirFoto(file, callback) {
 
 // 2. FUNÇÃO saveNewBonsai ATUALIZADA (Para destravar os campos de input)
 function saveNewBonsai() {
-    const nameInput = document.getElementById('f-name');
-    const photoInput = document.getElementById('f-photo');
-    const btn = document.querySelector('.btn-salvar'); // Ajuste a classe se for outra
+    console.log("Tentando salvar...");
 
-    // 1. SÓ O NOME É OBRIGATÓRIO AGORA!
-    if (!nameInput || !nameInput.value) {
-        return alert('Dê um nome para a planta, Parça!');
+    // 1. CAPTURA BRUTA (Tenta os dois nomes mais comuns que você usou)
+    const nameEl = document.getElementById('f-name') || document.getElementById('in-name');
+    const photoEl = document.getElementById('f-photo') || document.getElementById('in-photo');
+
+    if (!nameEl || !nameEl.value) {
+        alert("Erro: Não achei o campo de nome no HTML!");
+        return;
     }
 
-    if (btn) { btn.disabled = true; btn.innerText = "SALVANDO..."; }
+    try {
+        // 2. CRIA O OBJETO MÍNIMO (SEM FOTO PARA TESTAR)
+        const novoBonsai = {
+            id: Date.now(),
+            name: nameEl.value,
+            img: "https://i.ibb.co/whS5FNrr/logo-2.png", // Sua logo de reserva
+            notes: '', trans: '', adub: '', evolution: []
+        };
 
-    const finalizar = (imgBase64) => {
-        try {
-            const novo = { 
-                id: Date.now(), 
-                name: nameInput.value, 
-                img: imgBase64 || "https://i.ibb.co/whS5FNrr/logo-2.png", // Foto padrão se estiver vazio
-                notes: '', trans: '', adub: '', evolution: [] 
-            };
-            
-            db.push(novo);
-            localStorage.setItem('bonsai_db', JSON.stringify(db));
+        // 3. FORÇA A GRAVAÇÃO
+        db.push(novoBonsai);
+        localStorage.setItem('bonsai_db', JSON.stringify(db));
 
-            // Limpeza e Sucesso
-            nameInput.value = '';
-            if(photoInput) photoInput.value = '';
-            
-            alert("Bonsai cadastrado! 🌳");
-            closeAll();
-            render();
-        } catch (err) {
-            alert("Memória cheia! Tente apagar plantas antigas.");
-        } finally {
-            if (btn) { btn.disabled = false; btn.innerText = "CADASTRAR"; }
-        }
-    };
+        // 4. FEEDBACK IMEDIATO
+        alert("SALVOU NO JARDIM! 🌳");
+        
+        // Limpa o campo
+        nameEl.value = "";
+        if(photoEl) photoEl.value = "";
+        
+        closeAll();
+        render();
 
-    // 2. LÓGICA FLEXÍVEL: TEM FOTO? COMPRIME. NÃO TEM? SEGUE O BAILE.
-    if (photoInput && photoInput.files[0]) {
-        comprimirFoto(photoInput.files[0], (res) => finalizar(res));
-    } else {
-        finalizar(null); // Salva sem foto sem travar!
+    } catch (e) {
+        console.error(e);
+        alert("Erro no banco de dados: " + e.message);
     }
-}
-// --- ATÉ AQUI ---
-</script>
+}</script>
 </body>
 </html>
