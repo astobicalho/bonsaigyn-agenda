@@ -605,29 +605,60 @@ function deletePhoto(index) {
 }
 
 function savePost() {
-    // Pega o que o parça digitou
-    const texto = document.getElementById('post-txt')?.value;
-    
-    if(!texto) {
-        alert("Escreva algo no texto!");
-        return;
+    const cat = document.getElementById('post-cat')?.value || "Geral";
+    const txt = document.getElementById('post-txt')?.value;
+    const fileInput = document.getElementById('post-file'); // Confirme se o ID é esse
+    const editId = document.getElementById('edit-id')?.value;
+    const type = (curTab === 'p-guide') ? 'guide' : 'seasonal';
+
+    if (!txt) return alert("Escreva o texto, Parça!");
+
+    // Função que grava tudo no banco
+    const gravar = (imgFinal) => {
+        try {
+            const dadosPost = {
+                id: editId ? Number(editId) : Date.now(),
+                category: cat,
+                text: txt,
+                img: imgFinal // Aqui vai a foto real ou null
+            };
+
+            if (editId) {
+                const idx = posts[type].findIndex(p => p.id == editId);
+                if (idx !== -1) posts[type][idx] = dadosPost;
+            } else {
+                posts[type].unshift(dadosPost);
+            }
+
+            localStorage.setItem('bonsai_posts', JSON.stringify(posts));
+            
+            alert("✅ POST COMPLETO SALVO!");
+            
+            // Limpeza
+            if(document.getElementById('post-txt')) document.getElementById('post-txt').value = "";
+            if(fileInput) fileInput.value = "";
+            
+            closeAll();
+            render();
+        } catch (e) {
+            alert("Erro de memória: Foto muito grande para o celular!");
+        }
+    };
+
+    // --- O PULO DO GATO PARA A FOTO REAL ---
+    if (fileInput && fileInput.files && fileInput.files[0]) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            // Aqui você pode usar a compressão que te mandei antes 
+            // ou mandar o e.target.result direto para testar:
+            gravar(e.target.result); 
+        };
+        reader.readAsDataURL(fileInput.files[0]);
+    } else {
+        // Se não escolheu foto, aí sim ele salva sem foto (null)
+        gravar(null);
     }
-
-    // Tenta salvar no 'posts' (ou cria se não existir)
-    if (typeof posts === 'undefined') window.posts = { seasonal: [], guide: [] };
-    
-    const novo = { id: Date.now(), category: "Teste", text: texto, img: null };
-    posts.seasonal.unshift(novo);
-
-    // Grava no disco
-    localStorage.setItem('bonsai_posts', JSON.stringify(posts));
-
-    // A MENSAGEM QUE VOCÊ QUER VER:
-    alert("✅ SALVO COM SUCESSO!");
-    
-    location.reload(); // Recarrega para forçar a exibição
-}
-	function render() {
+}	function render() {
     // Render do Jardim
     const gList = document.getElementById('bonsai-list');
     if(gList) {
