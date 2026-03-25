@@ -604,49 +604,51 @@ function deletePhoto(index) {
     const file = document.getElementById('post-file').files[0];
     const type = (curTab === 'p-guide') ? 'guide' : 'seasonal';
     
-    // Trava de segurança: não salva vazio
-    if(!cat || !txt) return alert("Preencha a categoria e o texto, Parça!");
+    if(!cat || !txt) return alert("Preencha categoria e texto!");
 
     const finalize = (img) => {
-        if(id) {
-            // Modo Edição
-            const idx = posts[type].findIndex(p => p.id == id);
-            if(idx !== -1) {
-                posts[type][idx].category = cat;
-                posts[type][idx].text = txt;
-                if(img) posts[type][idx].img = img;
+        try {
+            if(id) {
+                const idx = posts[type].findIndex(p => p.id == id);
+                if(idx !== -1) {
+                    posts[type][idx].category = cat;
+                    posts[type][idx].text = txt;
+                    if(img) posts[type][idx].img = img;
+                }
+            } else {
+                posts[type].unshift({ 
+                    id: Date.now(), 
+                    category: cat, 
+                    text: txt, 
+                    img: img 
+                });
             }
-        } else {
-            // Novo Post (unshift coloca no topo da lista)
-            posts[type].unshift({ 
-                id: Date.now(), 
-                category: cat, 
-                text: txt, 
-                img: img || null 
-            });
-        }
 
-        // SALVAMENTO REAL
-        localStorage.setItem('bonsai_posts', JSON.stringify(posts));
-        
-        // LIMPEZA E DESTRAVE DA TELA
-        document.getElementById('post-cat').value = '';
-        document.getElementById('post-txt').value = '';
-        document.getElementById('post-file').value = '';
-        document.getElementById('edit-id').value = '';
-        
-        closeAll(); // Fecha o overlay
-        render();   // Atualiza a lista na tela
-        alert("Conteúdo salvo com sucesso! 🌳");
+            // Tenta gravar - se estiver cheio, ele pula pro 'catch'
+            localStorage.setItem('bonsai_posts', JSON.stringify(posts));
+            
+            // LIMPEZA CRÍTICA
+            document.getElementById('edit-id').value = '';
+            document.getElementById('post-cat').value = '';
+            document.getElementById('post-txt').value = '';
+            document.getElementById('post-file').value = '';
+
+            alert("Conteúdo salvo no jardim! 🌳");
+            closeAll();
+            render();
+
+        } catch (e) {
+            console.error("Erro de espaço:", e);
+            alert("⚠️ MEMÓRIA CHEIA!\nO navegador não aguenta mais fotos desse tamanho. Tente postar sem foto ou use uma imagem bem menor.");
+        }
     };
 
     if(file) {
         const r = new FileReader();
         r.onload = (e) => finalize(e.target.result);
-        r.onerror = () => alert("Erro ao carregar imagem!");
         r.readAsDataURL(file);
-    } else { 
-        finalize(null); 
+    } else {
+        finalize(null);
     }
 }
   function render() {
