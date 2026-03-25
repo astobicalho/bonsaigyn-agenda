@@ -597,90 +597,90 @@ function deletePhoto(index) {
     renderEvo(db[i].evolution); // Atualiza a galeria na hora
 }
 
-  function savePost() {
-    const id = document.getElementById('edit-id').value;
-    const cat = document.getElementById('post-cat').value;
-    const txt = document.getElementById('post-txt').value;
-    const file = document.getElementById('post-file').files[0];
+function savePost() {
+    console.log("Iniciando salvamento no Jardim...");
+
+    // 1. CAPTURA SEGURA (Se der erro aqui, o ID no HTML está errado)
+    const idEl = document.getElementById('edit-id');
+    const catEl = document.getElementById('post-cat');
+    const txtEl = document.getElementById('post-txt');
+    const fileEl = document.getElementById('post-file');
+
+    if (!catEl || !txtEl) {
+        alert("ERRO TÉCNICO: O Script não achou os campos 'post-cat' ou 'post-txt' no HTML!");
+        return;
+    }
+
+    const id = idEl ? idEl.value : '';
+    const cat = catEl.value;
+    const txt = txtEl.value;
     const type = (curTab === 'p-guide') ? 'guide' : 'seasonal';
 
-    if(!cat || !txt) return alert("Preencha os campos, Parça!");
+    if (!cat || !txt) return alert("Preencha categoria e texto, Parça!");
 
-    const executarSalvamento = (imgLeve) => {
+    const finalizar = (imgData) => {
         try {
-            if(id) {
+            // Garantir que a estrutura existe
+            if (!posts[type]) posts[type] = [];
+
+            if (id) {
                 const idx = posts[type].findIndex(p => p.id == id);
-                if(idx !== -1) {
+                if (idx !== -1) {
                     posts[type][idx].category = cat;
                     posts[type][idx].text = txt;
-                    if(imgLeve) posts[type][idx].img = imgLeve;
+                    if (imgData) posts[type][idx].img = imgData;
                 }
             } else {
-                posts[type].unshift({ id: Date.now(), category: cat, text: txt, img: imgLeve });
+                posts[type].unshift({
+                    id: Date.now(),
+                    category: cat,
+                    text: txt,
+                    img: imgData
+                });
             }
 
+            // SALVAMENTO COM CHAVE ÚNICA DO JARDIM
             localStorage.setItem('bonsai_posts', JSON.stringify(posts));
-            alert("SALVOU NO CELULAR! 🌳");
-            
-            // Limpa e fecha (com trava para não dar erro de 'null')
-            document.getElementById('edit-id').value = '';
-            document.getElementById('post-txt').value = '';
-            document.getElementById('post-file').value = '';
+
+            alert("AGORA FOI! Salvo no Jardim! 🌳");
+
+            // LIMPEZA TOTAL (O segredo do celular é zerar tudo)
+            if(idEl) idEl.value = '';
+            catEl.value = '';
+            txtEl.value = '';
+            if(fileEl) fileEl.value = '';
+
             closeAll();
             render();
         } catch (e) {
-            alert("MEMÓRIA CHEIA! O celular não aguentou o tamanho dessa foto.");
+            alert("ERRO DE MEMÓRIA: O celular travou o salvamento. Tente uma foto menor ou limpe o histórico do navegador.");
         }
     };
 
-    if(file) {
-        // --- COMPRESSOR PARA CELULAR ---
+    // Se tiver foto, comprime antes (O Shop faz isso, por isso funciona lá)
+    const file = fileEl ? fileEl.files[0] : null;
+    if (file) {
         const reader = new FileReader();
-        reader.readAsDataURL(file);
         reader.onload = (e) => {
             const img = new Image();
             img.src = e.target.result;
             img.onload = () => {
                 const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                const MAX_WIDTH = 600; // Foto pequena para o post
+                const MAX_WIDTH = 600;
                 const scale = MAX_WIDTH / img.width;
                 canvas.width = MAX_WIDTH;
                 canvas.height = img.height * scale;
-                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                
-                // Transforma em JPEG 50% (Fica minúsculo e limpo)
-                executarSalvamento(canvas.toDataURL('image/jpeg', 0.5));
-            };
-        };
-    } else {
-        executarSalvamento(null);
-    }
-}
-    if(file) {
-        // --- MINI COMPRESSOR INTEGRADO ---
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = (event) => {
-            const img = new Image();
-            img.src = event.target.result;
-            img.onload = () => {
-                const canvas = document.createElement('canvas');
                 const ctx = canvas.getContext('2d');
-                // Reduz para no máximo 600px (ideal para posts)
-                const scale = 600 / img.width;
-                canvas.width = 600;
-                canvas.height = img.height * scale;
                 ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                // Converte para JPEG com 60% de qualidade (fica levinho)
-                finalizarGravacao(canvas.toDataURL('image/jpeg', 0.6));
+                finalizar(canvas.toDataURL('image/jpeg', 0.5)); // JPEG leve
             };
         };
+        reader.readAsDataURL(file);
     } else {
-        finalizarGravacao(null);
+        finalizar(null);
     }
 }
-  function render() {
+	function render() {
     // Render do Jardim
     const gList = document.getElementById('bonsai-list');
     if(gList) {
