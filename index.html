@@ -597,7 +597,7 @@ function deletePhoto(index) {
     renderEvo(db[i].evolution); // Atualiza a galeria na hora
 }
 
-   function savePost() {
+  function savePost() {
     const id = document.getElementById('edit-id').value;
     const cat = document.getElementById('post-cat').value;
     const txt = document.getElementById('post-txt').value;
@@ -606,49 +606,56 @@ function deletePhoto(index) {
     
     if(!cat || !txt) return alert("Preencha categoria e texto!");
 
-    const finalize = (img) => {
+    const finalizarGravacao = (imgFinal) => {
         try {
             if(id) {
                 const idx = posts[type].findIndex(p => p.id == id);
                 if(idx !== -1) {
                     posts[type][idx].category = cat;
                     posts[type][idx].text = txt;
-                    if(img) posts[type][idx].img = img;
+                    if(imgFinal) posts[type][idx].img = imgFinal;
                 }
             } else {
-                posts[type].unshift({ 
-                    id: Date.now(), 
-                    category: cat, 
-                    text: txt, 
-                    img: img 
-                });
+                posts[type].unshift({ id: Date.now(), category: cat, text: txt, img: imgFinal });
             }
 
-            // Tenta gravar - se estiver cheio, ele pula pro 'catch'
             localStorage.setItem('bonsai_posts', JSON.stringify(posts));
             
-            // LIMPEZA CRÍTICA
+            // Limpa tudo para o próximo não bugar
             document.getElementById('edit-id').value = '';
             document.getElementById('post-cat').value = '';
             document.getElementById('post-txt').value = '';
             document.getElementById('post-file').value = '';
-
-            alert("Conteúdo salvo no jardim! 🌳");
+            
+            alert("Agora foi, Parça! Salvo com sucesso. 🌳");
             closeAll();
             render();
-
         } catch (e) {
-            console.error("Erro de espaço:", e);
-            alert("⚠️ MEMÓRIA CHEIA!\nO navegador não aguenta mais fotos desse tamanho. Tente postar sem foto ou use uma imagem bem menor.");
+            alert("ERRO: O navegador ainda está cheio! Tente apagar posts antigos ou postar sem foto.");
         }
     };
 
     if(file) {
-        const r = new FileReader();
-        r.onload = (e) => finalize(e.target.result);
-        r.readAsDataURL(file);
+        // --- MINI COMPRESSOR INTEGRADO ---
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = (event) => {
+            const img = new Image();
+            img.src = event.target.result;
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                // Reduz para no máximo 600px (ideal para posts)
+                const scale = 600 / img.width;
+                canvas.width = 600;
+                canvas.height = img.height * scale;
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                // Converte para JPEG com 60% de qualidade (fica levinho)
+                finalizarGravacao(canvas.toDataURL('image/jpeg', 0.6));
+            };
+        };
     } else {
-        finalize(null);
+        finalizarGravacao(null);
     }
 }
   function render() {
@@ -902,7 +909,14 @@ window.addEventListener('load', () => {
         document.getElementById('user-display-top').innerText = data.nome;
     }
 });
-
+// Rode isso UMA VEZ no console do navegador (F12) para liberar espaço
+// ou crie um botão temporário:
+function limparCachePesado() {
+    if(confirm("Parça, isso vai apagar os posts (Geral e Sazonal) para destravar o sistema. As plantas no Jardim continuam. Bora?")) {
+        localStorage.removeItem('bonsai_posts');
+        location.reload();
+    }
+}
 </script>
 </body>
 </html>
